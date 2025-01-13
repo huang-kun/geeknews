@@ -47,7 +47,7 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager):
     LOG.info(f"[定时任务执行完毕]")
 
 
-def start_process(dry_run=False):
+def start_process():
     # 设置信号处理器
     signal.signal(signal.SIGTERM, graceful_shutdown)
 

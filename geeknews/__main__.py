@@ -9,4 +9,4 @@ from geeknews.daemon_process import start_process
 from geeknews.command_tool import start_command_tool
 
 if __name__ == '__main__':
-    start_command_tool()
+    start_process()
