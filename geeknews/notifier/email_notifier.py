@@ -17,6 +17,11 @@ class GeeknewsEmailNotifier:
         self.sender = os.getenv('GEEKNEWS_EMAIL_SENDER', '')
         self.tester = os.getenv('GEEKNEWS_EMAIL_TESTER', '')
 
+        if not self.tester:
+            raise ValueError('请设置GEEKNEWS_EMAIL_TESTER环境变量')
+        if not self.re_email.match(self.tester):
+            raise ValueError('GEEKNEWS_EMAIL_TESTER不是合法的邮箱地址')
+
         self.create_tester_file_if_not_exists()
         self.beta_testers = self.load_tester_emails()
         self.dry_run = False
@@ -101,9 +106,11 @@ class GeeknewsEmailNotifier:
         msg.attach(MIMEText(content, mime_type))
 
         try:
-            with smtplib.SMTP_SSL(host=host, port=port) as server:
-                server.set_debuglevel(1)
+            with smtplib.SMTP(host=host, port=port) as server:
+                if debug:
+                    server.set_debuglevel(1)
                 LOG.debug("登录SMTP服务器")
+                server.starttls()
                 server.login(sender, self.password)
                 server.sendmail(sender, target, msg.as_string())
                 LOG.info("邮件发送成功！")
