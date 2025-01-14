@@ -99,7 +99,7 @@ class GeeknewsEmailNotifier:
         host = self.config.smtp_server
         port = self.config.smtp_port
         sender = self.sender
-        target = self.tester if debug else ';'.join(self.beta_testers)
+        target = self.tester if debug else ', '.join(self.beta_testers)
 
         if self.dry_run:
             LOG.debug(f"模拟发送邮件 - from: {sender}, to: {target}, subject: {title}, content: {content[:10]}...")
