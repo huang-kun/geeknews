@@ -24,11 +24,21 @@ LOG_FILE="$LOG_DIR/$DAEMON_NAME.log"
 # 定义守护进程的 PID 文件路径，用于存储进程号
 PID_DIR=$(expand_path "~/run")
 PID_FILE="$PID_DIR/$DAEMON_NAME.pid"
+# Conda env
+CONDA_PROJ_ENV="geeknews"
+
+conda_active_check() {
+    if [ "$CONDA_DEFAULT_ENV" != "$CONDA_PROJ_ENV" ]; then
+        echo "conda env is not active! try 'conda activate $CONDA_PROJ_ENV' before start"
+        exit 1
+    fi
+}
 
 # 启动守护进程的函数
 start() {
     mkdir_if_not_exists $LOG_DIR
     mkdir_if_not_exists $PID_DIR
+    conda_active_check
     echo "Starting $DAEMON_NAME..."
     # 使用 nohup 命令在后台运行 Python 脚本，并将输出重定向到日志文件
     nohup python3 -m $DAEMON_NAME > $LOG_FILE 2>&1 &
