@@ -58,8 +58,9 @@ def start_process():
 
     hn_freq_days = geeknews_manager.hackernews_config.update_freq_days
     hn_exec_time = geeknews_manager.hackernews_config.update_exec_time
+    hn_exec_tz = geeknews_manager.hackernews_config.exec_time_zone
 
-    schedule.every(hn_freq_days).days.at(hn_exec_time).do(
+    schedule.every(hn_freq_days).days.at(hn_exec_time, hn_exec_tz).do(
         hacker_news_daily_job, 
         geeknews_manager,
     )
