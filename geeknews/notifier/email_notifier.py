@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import ssl
 import smtplib
 from email.mime.text import MIMEText
@@ -18,22 +19,27 @@ class GeeknewsEmailNotifier:
         self.tester = os.getenv('GEEKNEWS_EMAIL_TESTER', '')
 
         if not self.tester:
-            raise ValueError('请设置GEEKNEWS_EMAIL_TESTER环境变量')
+            LOG.error('请设置GEEKNEWS_EMAIL_TESTER环境变量')
+            sys.exit(1)
         if not self.re_email.match(self.tester):
-            raise ValueError('GEEKNEWS_EMAIL_TESTER不是合法的邮箱地址')
-
+            LOG.error('GEEKNEWS_EMAIL_TESTER不是合法的邮箱地址')
+            sys.exit(1)
+        
         self.create_tester_file_if_not_exists()
         self.beta_testers = self.load_tester_emails()
         self.dry_run = False
 
+    def get_email_tester_path(self):
+        return self.config.beta_tester_path
+
     def load_tester_emails(self):
-        with open(self.config.beta_tester_path) as f:
+        with open(self.get_email_tester_path()) as f:
             content = f.read().strip()
         testers = content.split('\n')
         return list(filter(lambda x: len(x) > 0, testers))
 
     def create_tester_file_if_not_exists(self):
-        tester_path = self.config.beta_tester_path
+        tester_path = self.get_email_tester_path()
         if os.path.exists(tester_path):
             return
 
@@ -49,7 +55,7 @@ class GeeknewsEmailNotifier:
             LOG.error(f"无法加入测试邮箱: {email}")
             return False
         
-        tester_path = self.config.beta_tester_path
+        tester_path = self.get_email_tester_path()
         with open(tester_path, 'a') as f:
             f.write(email + '\n')
         
@@ -71,7 +77,7 @@ class GeeknewsEmailNotifier:
         
         del self.beta_testers[found_index]
 
-        tester_path = self.config.beta_tester_path
+        tester_path = self.get_email_tester_path()
         with open(tester_path, 'w') as f:
             f.write('\n'.join(self.beta_testers))
         
