@@ -118,7 +118,7 @@ class GeeknewsEmailNotifier:
                 LOG.debug("登录SMTP服务器")
                 server.starttls()
                 server.login(sender, self.password)
-                server.sendmail(sender, target, msg.as_string())
+                server.sendmail(sender, target.split(', '), msg.as_string())
                 LOG.info("邮件发送成功！")
         except Exception as e:
             LOG.error(f"发送邮件失败：{str(e)}")
