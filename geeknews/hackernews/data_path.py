@@ -77,8 +77,7 @@ class HackernewsDataPathManager:
             return self.config.report_dir
         else:
             final_date = self._get_date(date)
-            result_dir = os.path.join(self.config.report_dir, locale, final_date.joined_path)
-            return os.path.dirname(result_dir) # remove last path, e.g. 2025/1/9/ -> 2025/1/
+            return os.path.join(self.config.report_dir, locale, final_date.joined_path)
         
     def get_report_file_path(self, locale='zh_cn', date=GeeknewsDate.now(), ext='.md'):
         report_full_dir = self.get_report_full_dir(locale, date)
