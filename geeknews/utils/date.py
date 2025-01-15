@@ -8,6 +8,9 @@ class GeeknewsDate:
         self.month = month
         self.day = day
 
+    def __str__(self):
+        return self.joined_path
+
     @classmethod
     def now(cls):
         n = datetime.now()

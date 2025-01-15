@@ -146,7 +146,7 @@ class HackernewsArticleEditor:
             with open(article_path, 'w') as f:
                 f.write(article)
 
-        LOG.debug(f'编辑结束: {self.datapath_manager.get_article_date_dir()}')
+        LOG.debug(f'编辑结束: {self.datapath_manager.get_article_date_dir(date)}')
     
     def generate_article(self, story):        
         text = self.generate_article_text(story)

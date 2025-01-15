@@ -25,12 +25,11 @@ def graceful_shutdown(signum, frame):
 
 
 def hacker_news_daily_job(geeknews_manager: GeeknewsManager):
-    LOG.info('[开始执行定时任务]Hacker News每日热点汇总')
-
     locale = 'zh_cn'
     date = GeeknewsDate.now()
     override = True
 
+    LOG.info(f'[开始执行定时任务]Hacker News每日热点汇总, date: {date}')
     report_path = geeknews_manager.hackernews_dpm.get_report_file_path(locale=locale, date=date, ext='.html')
     
     if not os.path.exists(report_path):

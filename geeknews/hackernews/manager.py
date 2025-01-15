@@ -20,7 +20,7 @@ class HackernewsManager:
         self.report_writer = HackernewsReportWriter(dpm)
     
     def generate_daily_report(self, locale='zh_cn', date=GeeknewsDate.now(), override=False):
-        self.api_client.fetch_daily_stories()
+        self.api_client.fetch_daily_stories(date)
         self.article_editor.generate_topstories_articles(date)
         self.summary_writer.generate_daily_summaries(locale, date)
         self.report_writer.generate_report('topstories', locale, date, override)

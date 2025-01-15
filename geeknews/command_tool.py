@@ -53,7 +53,7 @@ class GeeknewsCommandHandler:
         report_path = hackernews_dpm.get_report_file_path(locale=locale, date=date, ext='.html')
 
         if args.fetch:
-            LOG.info('[开始执行终端任务]Hacker News每日热点')
+            LOG.info(f'[开始执行终端任务]Hacker News每日热点: {date}')
             if not os.path.exists(report_path):
                 hackernews_manager.generate_daily_report(locale=locale, date=date, override=override)
             if not os.path.exists(report_path):

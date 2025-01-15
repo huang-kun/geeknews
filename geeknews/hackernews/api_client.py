@@ -4,6 +4,7 @@ import json
 from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager
 from geeknews.utils.logger import LOG
+from geeknews.utils.date import GeeknewsDate
 
 # https://github.com/HackerNews/API
 
@@ -58,13 +59,13 @@ class HackernewsClient:
         url = self.api.get_item_url(id)
         return self.http_get(url, empty_data={})
         
-    def get_item(self, id, item_type='story', parent_id=None, recursive=False, remain_comment_count=10, current_num=0, mark_article=False):
-        item = self.get_local_item(id)
+    def get_item(self, id, item_type='story', parent_id=None, recursive=False, remain_comment_count=10, current_num=0, mark_article=False, date=GeeknewsDate.now()):
+        item = self.get_local_item(id, date)
         
         if not item:
             action_log = '开始下载'
             item = self.fetch_item(id)
-            self.save_item(id, item)
+            self.save_item(id, item, date)
         else:
             action_log = '本地读取'
 
@@ -103,6 +104,7 @@ class HackernewsClient:
                 remain_comment_count=remain_comment_count,
                 current_num=index+1,
                 mark_article=False,
+                date=date,
             )
             comments.append(comment)
 
@@ -112,10 +114,10 @@ class HackernewsClient:
         
         return item
     
-    def fetch_daily_stories(self):
+    def fetch_daily_stories(self, date=GeeknewsDate.now()):
         # fetch and save top stories json
-        stories = self.fetch_top_stories()
-        stories_file_path = self.datapath_manager.get_stories_file_path(name='topstories')
+        stories = self.fetch_top_stories(date)
+        stories_file_path = self.datapath_manager.get_stories_file_path(name='topstories', date=date)
         with open(stories_file_path, 'w') as f:
             json.dump(stories, f, ensure_ascii=False, indent=4)
 
@@ -142,7 +144,7 @@ class HackernewsClient:
         
         LOG.debug(f'完成获取stories: {story_date_dir}')
 
-    def fetch_top_stories(self):
+    def fetch_top_stories(self, date=GeeknewsDate.now()):
         story_limit = self.config.daily_story_max_count
         comment_limit = self.config.each_story_max_comment_count
         article_limit = self.config.daily_article_max_count
@@ -166,27 +168,28 @@ class HackernewsClient:
                 remain_comment_count=comment_limit if mark_article else 0,
                 current_num=current_num,
                 mark_article=mark_article,
+                date=date,
             )
             items.append(item)
         return items
     
-    def get_local_item(self, id):
-        story_path = self.get_story_path(id)
+    def get_local_item(self, id, date=GeeknewsDate.now()):
+        story_path = self.get_story_path(id, date)
         if os.path.exists(story_path):
             with open(story_path) as f:
                 return json.load(f)
         return {}
     
-    def save_item(self, id, item):
-        story_path = self.get_story_path(id)
+    def save_item(self, id, item, date=GeeknewsDate.now()):
+        story_path = self.get_story_path(id, date)
         story_dir = os.path.dirname(story_path)
         if not os.path.exists(story_dir):
             os.makedirs(story_dir)
         with open(story_path, 'w') as f:
             json.dump(item, f, ensure_ascii=False)
 
-    def get_story_path(self, id):
-        return self.datapath_manager.get_story_file_path(id)
+    def get_story_path(self, id, date=GeeknewsDate.now()):
+        return self.datapath_manager.get_story_file_path(id, date)
 
 
 def test_hackernews_client():
