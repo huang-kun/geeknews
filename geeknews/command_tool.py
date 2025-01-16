@@ -36,6 +36,7 @@ class GeeknewsCommandHandler:
         email_parser.add_argument('--send', action='store_true', help='发送当天的html给所有beta用户')
         email_parser.add_argument('--list', action='store_true', help='列出所有beta用户的邮箱')
         email_parser.add_argument('--add', help='添加邮箱')
+        email_parser.add_argument('--merge', help='从文件里批量添加邮箱列表')
         email_parser.add_argument('--remove', help='删除邮箱')
         email_parser.set_defaults(func=self.handle_email)
 
@@ -104,6 +105,9 @@ class GeeknewsCommandHandler:
 
         elif args.add:
             email_notifier.add_tester_email(args.add)
+
+        elif args.merge:
+            email_notifier.merge_tester_emails(args.merge)
         
         elif args.remove:
             email_notifier.remove_tester_email(args.remove)

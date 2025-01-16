@@ -64,6 +64,32 @@ class GeeknewsEmailNotifier:
             f.write(email + '\n')
         
         return True
+    
+    def merge_tester_emails(self, email_path):
+        if not os.path.exists(email_path):
+            LOG.error(f"无法加入测试邮箱: {email_path} 文件路径不存在")
+            return False
+        
+        with open(email_path) as f:
+            emails = f.read().strip().split('\n')
+        
+        valid_emails = []
+        for email in emails:
+            if not email:
+                continue
+            if email in self.beta_testers:
+                continue
+            if not self.re_email.match(email):
+                LOG.error(f"无法加入测试邮箱: {email} 非邮箱格式")
+                continue
+            valid_emails.append(email)
+
+        self.beta_testers.extend(valid_emails)
+        tester_path = self.get_email_tester_path()
+        with open(tester_path, 'w') as f:
+            f.write('\n'.join(self.beta_testers) + '\n')
+        
+        LOG.info(f"新加入{len(valid_emails)}个测试邮箱")
 
     def remove_tester_email(self, email):
         if not self.re_email.match(email):
