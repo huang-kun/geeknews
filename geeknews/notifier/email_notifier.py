@@ -17,13 +17,6 @@ class GeeknewsEmailNotifier:
         self.password = os.getenv('GMAIL_APP_PASSWORD', '')
         self.sender = os.getenv('GEEKNEWS_EMAIL_SENDER', '')
         self.tester = os.getenv('GEEKNEWS_EMAIL_TESTER', '')
-
-        if not self.tester:
-            LOG.error('请设置GEEKNEWS_EMAIL_TESTER环境变量')
-            sys.exit(1)
-        if not self.re_email.match(self.tester):
-            LOG.error('GEEKNEWS_EMAIL_TESTER不是合法的邮箱地址')
-            sys.exit(1)
         
         self.create_tester_file_if_not_exists()
         self.beta_testers = self.load_tester_emails()
@@ -33,10 +26,15 @@ class GeeknewsEmailNotifier:
         return self.config.beta_tester_path
 
     def load_tester_emails(self):
+        tester_path = self.get_email_tester_path()
+        if not os.path.exists(tester_path):
+            return []
+        
         with open(self.get_email_tester_path()) as f:
             content = f.read().strip()
+        
         testers = content.split('\n')
-        return list(filter(lambda x: len(x) > 0, testers))
+        return list(filter(lambda x: self.re_email.match(x), testers))
 
     def create_tester_file_if_not_exists(self):
         tester_path = self.get_email_tester_path()
@@ -44,26 +42,32 @@ class GeeknewsEmailNotifier:
             return
 
         tester_dir = os.path.dirname(tester_path)
-        os.makedirs(tester_dir)
+        if not os.path.exists(tester_dir):
+            os.makedirs(tester_dir)
 
-        if self.tester:
-            with open(tester_path, 'w') as f:
-                f.write(self.tester + '\n')
+        content = self.tester + '\n' if self.tester else ''
+        with open(tester_path, 'w') as f:
+            content
 
     def add_tester_email(self, email):
         if not self.re_email.match(email):
-            LOG.error(f"无法加入测试邮箱: {email}")
+            LOG.error(f"无法加入测试邮箱: {email} 非邮箱格式")
+            return False
+        
+        if email in self.beta_testers:
+            LOG.error(f"无法加入测试邮箱: {email} 已经存在")
             return False
         
         tester_path = self.get_email_tester_path()
-        with open(tester_path, 'a') as f:
+        file_mode = 'a' if os.path.exists(tester_path) else 'w'
+        with open(tester_path, file_mode) as f:
             f.write(email + '\n')
         
         return True
 
     def remove_tester_email(self, email):
         if not self.re_email.match(email):
-            LOG.error(f"无法删除测试邮箱: {email}")
+            LOG.error(f"无法删除测试邮箱: {email} 非邮箱格式")
             return False
         
         found_index = -1
@@ -73,13 +77,14 @@ class GeeknewsEmailNotifier:
                 break
         
         if found_index < 0:
+            LOG.error(f"无法删除测试邮箱: {email} 不存在")
             return False
         
         del self.beta_testers[found_index]
 
         tester_path = self.get_email_tester_path()
         with open(tester_path, 'w') as f:
-            f.write('\n'.join(self.beta_testers))
+            f.write('\n'.join(self.beta_testers) + '\n')
         
         return True
 
@@ -90,8 +95,11 @@ class GeeknewsEmailNotifier:
         if not self.sender:
             LOG.error(f'无法发送邮件, 请设置GEEKNEWS_EMAIL_SENDER环境变量')
             return
-        if not self.tester:
+        if debug and not self.tester:
             LOG.error(f'无法发送邮件, 请设置GEEKNEWS_EMAIL_TESTER环境变量')
+            return
+        if not debug and not self.beta_testers:
+            LOG.error(f'无法发送邮件, beta测试邮箱列表为空')
             return
         
         LOG.info(f"准备发送邮件")
