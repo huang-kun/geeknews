@@ -225,8 +225,8 @@ class HackernewsArticleEditor:
                 return text.strip()
             else:
                 return ''
-        except requests.exceptions.HTTPError as err:
-            LOG.error(str(err))
+        except Exception as e:
+            LOG.error(str(e))
             return ''
 
 

@@ -51,8 +51,8 @@ class HackernewsClient:
         try:
             response.raise_for_status()
             return response.json()
-        except requests.exceptions.HTTPError as err:
-            LOG.error(str(err))
+        except Exception as e:
+            LOG.error(str(e))
             return empty_data
         
     def fetch_item(self, id):
