@@ -54,7 +54,7 @@ class GeeknewsCommandHandler:
 
         if args.fetch:
             LOG.info(f'[开始执行终端任务]Hacker News每日热点: {date}')
-            if not os.path.exists(report_path):
+            if override or (not override and not os.path.exists(report_path)):
                 hackernews_manager.generate_daily_report(locale=locale, date=date, override=override)
             if not os.path.exists(report_path):
                 LOG.error("[终端任务]汇总结束, 未发现任何报告")
