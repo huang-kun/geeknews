@@ -209,7 +209,11 @@ class HackernewsArticleEditor:
         return lines
     
     def read_text_from_url(self, url):
-        if not url or url.endswith('.pdf'):
+        if not url:
+            LOG.error(f'无法读取链接, 空url')
+            return ''
+        if url.endswith('.pdf'):
+            LOG.error(f'无法读取链接, 暂不支持pdf')
             return ''
         
         LOG.debug(f'正在读取链接: {url}')
@@ -224,6 +228,7 @@ class HackernewsArticleEditor:
                 text = text_maker.handle(response.text)
                 return text.strip()
             else:
+                LOG.error(f'从网页中提取文本失败: {url}')
                 return ''
         except Exception as e:
             LOG.error(str(e))
