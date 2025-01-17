@@ -153,7 +153,7 @@ class HackernewsArticleEditor:
         if not text:
             return ''
         
-        title = self.generate_article_title(story.title, story.url)
+        title = self.generate_article_title(story.title)
         comment = self.generate_article_comment(story.comments)
 
         text_total_limit = self.config.article_text_max_length
@@ -176,8 +176,8 @@ class HackernewsArticleEditor:
         
         return '\n'.join(lines)
 
-    def generate_article_title(self, title, url):
-        return f"# [{title}]({url})"
+    def generate_article_title(self, title):
+        return f"# {title}"
     
     def generate_article_text(self, story: HackernewsSimpleStory) -> str:
         if story.text:
@@ -189,7 +189,7 @@ class HackernewsArticleEditor:
         if not comments:
             return ''
         lines = self.generate_article_comment_lines(comments)
-        return '**Reader Comments**:\n' + '\n'.join(lines)
+        return 'USER_COMMENTS:\n' + '\n'.join(lines)
         
     def generate_article_comment_lines(self, comments, level=0):
         indent = ' ' * 4 * level

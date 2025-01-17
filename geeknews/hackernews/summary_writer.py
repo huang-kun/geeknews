@@ -11,6 +11,11 @@ TRANSLATION_LOCALE_TO_LANGUAGE = {
     'en_us': 'English',
     'en': 'English',
 }
+TRANSLATION_COMMENT_TITLE = {
+    'zh_cn': '读者评论',
+    'en_us': 'User commments',
+    'en': 'User comments',
+}
 
 class HackernewsSummaryWriter:
     '''
@@ -23,7 +28,8 @@ class HackernewsSummaryWriter:
         self.datapath_manager = datapath_manager
         self.prompt_map = self.load_prompts()
         self.re_trans_var = re.compile(TRANSLATION_VAR)
-        self.re_comment_url_tag = re.compile('COMMENT_URL_TAG')
+        self.re_title = re.compile(r'^(#{1,6})\s*(?P<head>.+)\n*')
+        self.re_comment_tag = re.compile(r'USER_COMMENTS:\s*\n*')
 
     @staticmethod
     def load_prompts():
@@ -57,6 +63,13 @@ class HackernewsSummaryWriter:
         article_filename = os.path.basename(article_path)
         article_id, _ = os.path.splitext(article_filename)
         
+        # Get story (with url, author, score)
+        story = {}
+        story_path = self.datapath_manager.get_story_file_path(article_id, date)
+        if os.path.exists(story_path):
+            with open(story_path) as f:
+                story = json.load(f)
+        
         summary_path = self.datapath_manager.get_summary_file_path(article_id, locale, date)
         if not override and os.path.exists(summary_path):
             return
@@ -72,8 +85,12 @@ class HackernewsSummaryWriter:
 
         LOG.debug(f'开始总结文章: {article_id}')
         summary_content = self.llm.get_assistant_message(system_prompt, article_content)
-        comment_url = f'https://news.ycombinator.com/item?id={article_id}'
-        final_content = self.re_comment_url_tag.sub(comment_url, summary_content, count=1)
+        final_content = self.modify_summarized_content(
+            article_id=article_id, 
+            article_url=story.get('url', ''), 
+            content=summary_content, 
+            locale=locale
+        )
         
         with open(summary_path, 'w') as f:
             f.write(final_content)
@@ -128,6 +145,22 @@ class HackernewsSummaryWriter:
 
     def get_translation_language(self, locale):
         return TRANSLATION_LOCALE_TO_LANGUAGE.get(locale, 'English')
+    
+    def modify_summarized_content(self, article_id, article_url, content, locale='zh_cn'):
+        # Add link to title
+        title_match = self.re_title.search(content)
+        if title_match:
+            title = title_match.group('head')
+            title_with_link = f'# [{title}]({article_url})\n'
+            content = self.re_title.sub(title_with_link, content, count=1)
+        
+        # Add link to comment title
+        comment_match = self.re_comment_tag.search(content)
+        if comment_match:
+            comment_title = f'**[{TRANSLATION_COMMENT_TITLE[locale]}](https://news.ycombinator.com/item?id={article_id})**: '
+            content = self.re_comment_tag.sub(comment_title, content)
+
+        return content
 
 
 def test_hackernews_summary_writer():
