@@ -3,6 +3,7 @@ from geeknews.llm import LLM
 
 from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
+from geeknews.utils.md2html import MarkdownRenderer
 
 from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager

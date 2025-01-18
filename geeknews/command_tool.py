@@ -4,6 +4,7 @@ import json
 
 from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
+from geeknews.utils.md2html import MarkdownRenderer
 
 from geeknews.llm import LLM
 from geeknews.notifier.email_notifier import GeeknewsEmailNotifier
@@ -29,6 +30,7 @@ class GeeknewsCommandHandler:
         # hacker news
         hackernews_parser = subparsers.add_parser('hackernews', help='Hacker News top stories')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
+        hackernews_parser.add_argument('--render', help='Markdown渲染为HTML')
         hackernews_parser.add_argument('--send', action='store_true', help='是否发送测试邮件')
         hackernews_parser.set_defaults(func=self.generate_hacker_news_daily_report)
 
@@ -57,11 +59,41 @@ class GeeknewsCommandHandler:
             LOG.info(f'[开始执行终端任务]Hacker News每日热点: {date}')
             if override or (not override and not os.path.exists(report_path)):
                 hackernews_manager.generate_daily_report(locale=locale, date=date, override=override)
-            if not os.path.exists(report_path):
+            if os.path.exists(report_path):
+                LOG.info(f"[终端任务执行完毕] {report_path}") 
+            else:
                 LOG.error("[终端任务]汇总结束, 未发现任何报告")
+            
+        elif args.render:
+            markdown_path = args.render
+
+            if not isinstance(markdown_path, str) or not os.path.exists(markdown_path):
+                LOG.error(f"[终端任务]渲染失败, 文件路径无效{markdown_path}")
                 return
+            if not markdown_path.endswith('.md'):
+                LOG.error(f"[终端任务]渲染失败, 文件格式要求是.md")
+                return
+            
+            renderer = MarkdownRenderer()
+            html = renderer.generate_html_from_md_path(
+                markdown_path=markdown_path,
+                action='mistune',
+                title='Geeknews',
+                footer='2025. Geeknews',
+            )
+            renderer.clean_all_caches()
+
+            markdown_dir = os.path.dirname(markdown_path)
+            basename = os.path.basename(markdown_path)
+            filename, _ = os.path.splitext(basename)
+            html_path = os.path.join(markdown_dir, filename+'.html')
+            
+            with open(html_path, 'w') as f:
+                f.write(html)
+
+            LOG.info(f"[终端任务]渲染完成 {html_path}")
         
-        if args.send:
+        elif args.send:
             LOG.info('[开始执行终端任务]发送Hacker News测试邮件')
             if not os.path.exists(report_path):
                 LOG.error("[终端任务]无法发送邮件, 未发现任何报告")
@@ -71,7 +103,7 @@ class GeeknewsCommandHandler:
             email_notifier.dry_run = False
             email_notifier.notify(title=f'Hacker News热点汇总: {date.formatted}', content=report_html, debug=True)
 
-        LOG.info(f"[终端任务执行完毕] {report_path}") 
+            LOG.info(f"[终端任务执行完毕] {report_path}") 
 
     def handle_email(self, args):
         email_notifier = self.geeknews_manager.email_notifier

@@ -2,14 +2,22 @@ import os, json
 import mistune
 from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
+from geeknews.utils.md2html import MarkdownRenderer
 from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager
+
+LOCALIZED_TITLE = {
+    'zh_cn': '极客号外',
+    'en_us': 'Geeknews',
+    'en': 'Geeknews',
+}
 
 class HackernewsReportWriter:
     '''Combine summaries and story-list into final report.'''
 
     def __init__(self, datapath_manager: HackernewsDataPathManager):
         self.datapath_manager = datapath_manager
+        self.markdown_renderer = MarkdownRenderer()
 
     def generate_report(self, category='topstories', locale='zh_cn', date=GeeknewsDate.now(), override=False):
         '''Combine today's summaries to daily report.'''
@@ -59,7 +67,19 @@ class HackernewsReportWriter:
             f.write(final_report_content)
 
         # also make a html report
-        html_content = mistune.html(final_report_content)
+        html_title = LOCALIZED_TITLE.get(locale, 'Geeknews')
+        html_footer = f'{date.year}. {html_title}'
+
+        html_content = self.markdown_renderer.generate_html_from_md_path(
+            markdown_path=report_path,
+            action='mistune',
+            title=html_title,
+            footer=html_footer,
+        )
+        self.markdown_renderer.clean_all_caches()
+
+        if not html_content:
+            html_content = mistune.html(final_report_content)
         
         html_basename = os.path.basename(report_path)
         html_name, _ = os.path.splitext(html_basename)
