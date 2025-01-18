@@ -47,7 +47,7 @@ class HackernewsReportWriter:
                 continue
             with open(sum_path) as f:
                 sum_content = f.read().strip()
-                report_contents.append('#' + sum_content)
+                report_contents.append('###' + sum_content)
                 report_contents.append('')
 
         sum_dir = self.datapath_manager.get_summary_full_dir(locale, date)
@@ -55,7 +55,7 @@ class HackernewsReportWriter:
         if os.path.exists(short_story_path):
             with open(short_story_path) as f:
                 story_list_content = f.read()
-                report_contents.append('## ' + self.get_reference_title(locale))
+                report_contents.append('#### ' + self.get_reference_title(locale))
                 report_contents.append(story_list_content)
 
         if len(report_contents) <= 2:

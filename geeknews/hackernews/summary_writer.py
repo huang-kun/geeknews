@@ -147,20 +147,66 @@ class HackernewsSummaryWriter:
         return TRANSLATION_LOCALE_TO_LANGUAGE.get(locale, 'English')
     
     def modify_summarized_content(self, article_id, article_url, content, locale='zh_cn'):
-        # Add link to title
+        # search title
         title_match = self.re_title.search(content)
         if title_match:
-            title = title_match.group('head')
-            title_with_link = f'# [{title}]({article_url})\n'
-            content = self.re_title.sub(title_with_link, content, count=1)
+            # remove extra \n after title
+            title_format = title_match.group()
+            title_end = title_match.end()
+            title = title_format.rstrip()
+            content = title + '\n' + content[title_end:]
         
-        # Add link to comment title
+        # search comment
         comment_match = self.re_comment_tag.search(content)
         if comment_match:
-            comment_title = f'**[{TRANSLATION_COMMENT_TITLE[locale]}](https://news.ycombinator.com/item?id={article_id})**: '
+            # add article link to the end of article content
+            comment_start = comment_match.start()
+            article_last_char_index = self.find_text_ended_before_index(content, comment_start)
+            if article_last_char_index > 0:
+                article_link = f'[>>]({article_url})'
+                content = self.insert_str(content, article_link, article_last_char_index+1)
+
+            # add comment link to the end of comments
+            comment_url = f'https://news.ycombinator.com/item?id={article_id}'
+            comment_link = f'[>>]({comment_url})'
+            if content.endswith('\n'):
+                content_last_char_index = self.find_text_ended_before_index(content, len(content)-1)
+                if content_last_char_index > 0:
+                    content = self.insert_str(content, comment_link, content_last_char_index+1)
+            else:
+                content = content + comment_link
+
+            # replace comment tag
+            comment_title = TRANSLATION_COMMENT_TITLE.get(locale, 'User comments') + ': '
             content = self.re_comment_tag.sub(comment_title, content)
+            
+        else:
+            # add article link to end of content
+            article_link = f'[>>]({article_url})'
+            if content.endswith('\n'):
+                content_last_char_index = self.find_text_ended_before_index(content, len(content)-1)
+                if content_last_char_index > 0:
+                    content = self.insert_str(content, article_link, content_last_char_index+1)
+            else:
+                content = content + article_link
 
         return content
+    
+    @staticmethod
+    def insert_str(base_string, insert_string, index):
+        '''Inserts a string into another string at a specified index.'''
+        if index < 0:
+            index = 0
+        return base_string[:index] + insert_string + base_string[index:]
+
+    @staticmethod
+    def find_text_ended_before_index(base_string, before_index):
+        if before_index < 1 or base_string[before_index-1] != '\n':
+            return -1
+        for i in range(before_index-1, 0, -1):
+            if base_string[i] == '\n':
+                continue
+            return i
 
 
 def test_hackernews_summary_writer():
