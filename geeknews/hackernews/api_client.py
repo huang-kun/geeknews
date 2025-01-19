@@ -173,6 +173,41 @@ class HackernewsClient:
             items.append(item)
         return items
     
+    def get_story_id_with_highest_score(self, category='topstories', article_only=True, date=GeeknewsDate.now()):
+        # default implementation: 
+        # get topstories.json, look for story with both highest score and marked article
+
+        story_list_path = self.datapath_manager.get_stories_file_path(name=category, date=date)
+        if not os.path.exists(story_list_path):
+            LOG.error('搜索最高分热点失败: 找不到topstories.json')
+            return -1
+        
+        with open(story_list_path) as f:
+            stories = json.load(f)
+
+        if not isinstance(stories, list) or not stories:
+            LOG.error('搜索最高分热点失败: 没有热点数据')
+            return -1
+
+        highest_score = 0
+        found_story_id = -1
+        
+        for story in stories:
+            article = story.get('article', False)
+            score = story.get('score', 0)
+            if article_only and not article:
+                continue
+            if score > highest_score:
+                highest_score = score
+                found_story_id = story.get('id', 0)
+
+        # if no highest score, then get first story.
+        if highest_score == 0:
+            first_story = stories[0]
+            found_story_id = first_story.get('id', 0)
+        
+        return found_story_id
+    
     def get_local_item(self, id, date=GeeknewsDate.now()):
         story_path = self.get_story_path(id, date)
         if os.path.exists(story_path):

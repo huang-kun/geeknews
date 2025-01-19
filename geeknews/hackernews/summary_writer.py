@@ -143,6 +143,19 @@ class HackernewsSummaryWriter:
         with open(summary_list_path, 'w') as f:
             f.write('\n'.join(summary_contents))
 
+    def find_summary_title(self, story_id, locale='zh_cn', date=GeeknewsDate.now()):
+        summary_path = self.datapath_manager.get_summary_file_path(story_id, locale, date)
+        if not os.path.exists(summary_path):
+            return ''
+        
+        with open(summary_path) as f:
+            first_line = f.readline().strip()
+
+        if not first_line.startswith('# '):
+            return ''
+        
+        return first_line[2:].strip()
+
     def get_translation_language(self, locale):
         return TRANSLATION_LOCALE_TO_LANGUAGE.get(locale, 'English')
     
