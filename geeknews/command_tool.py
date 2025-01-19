@@ -30,6 +30,7 @@ class GeeknewsCommandHandler:
         # hacker news
         hackernews_parser = subparsers.add_parser('hackernews', help='Hacker News top stories')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
+        hackernews_parser.add_argument('--report', action='store_true', help='生成markdown报告')
         hackernews_parser.add_argument('--render', help='Markdown渲染为HTML')
         hackernews_parser.add_argument('--send', action='store_true', help='是否发送测试邮件')
         hackernews_parser.set_defaults(func=self.generate_hacker_news_daily_report)
@@ -63,7 +64,10 @@ class GeeknewsCommandHandler:
                 LOG.info(f"[终端任务执行完毕] {report_path}") 
             else:
                 LOG.error("[终端任务]汇总结束, 未发现任何报告")
-            
+        
+        elif args.report:
+            hackernews_manager.report_writer.generate_report('topstories', locale, date, override)
+
         elif args.render:
             markdown_path = args.render
 
