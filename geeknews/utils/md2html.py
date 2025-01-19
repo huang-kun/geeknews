@@ -40,6 +40,7 @@ class MarkdownRenderer:
         self.re_head_end = re.compile(r'<\/head>')
         self.re_line_terminators = re.compile(r'\n{2,}')
         self.re_comment = re.compile(r'<!-- .*? -->')
+        self.re_subtitle_tag = re.compile(r'<h[^12]>') # find <h3>, <h4> ...
     
     @staticmethod
     def get_cache_dir():
@@ -89,6 +90,12 @@ class MarkdownRenderer:
         html_content = self.re_comment.sub('', html_content)
         # remove extra \n
         html_content = self.re_line_terminators.sub('\n', html_content)
+        
+        # increate subtitle line spacing: insert <br> in front of each <h?> except <h1>
+        subtitle_tag_match = self.re_subtitle_tag.search(html_content)
+        if subtitle_tag_match:
+            tag_with_br = '<br>\n' + subtitle_tag_match.group()
+            html_content = self.re_subtitle_tag.sub(tag_with_br, html_content)
         
         return html_content
 
