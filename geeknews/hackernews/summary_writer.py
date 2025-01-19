@@ -139,7 +139,7 @@ class HackernewsSummaryWriter:
                 translated_title = translated_titles[index]
                 story['title'] = translated_title[2:] if translated_title.startswith(bullet_mark) else translated_title
 
-        summary_contents = list(map(lambda s: f"{bullet_mark}[{s['title']}]({s['url']})", short_stories))
+        summary_contents = list(map(lambda s: f"{bullet_mark}{s['title']} [>>]({s['url']})", short_stories))
         with open(summary_list_path, 'w') as f:
             f.write('\n'.join(summary_contents))
 
