@@ -99,13 +99,19 @@ class GeeknewsCommandHandler:
         
         elif args.send:
             LOG.info('[开始执行终端任务]发送Hacker News测试邮件')
+            
             if not os.path.exists(report_path):
                 LOG.error("[终端任务]无法发送邮件, 未发现任何报告")
                 return
+            
             with open(report_path) as f:
                 report_html = f.read()
+            
+            story_title = hackernews_manager.get_daily_top_story_title(locale, date)
+            final_title = f'HN热点: {story_title}' if story_title else 'Hacker News 热点汇总'
+
             email_notifier.dry_run = False
-            email_notifier.notify(title=f'Hacker News热点汇总: {date.formatted}', content=report_html, debug=True)
+            email_notifier.notify(title=final_title, content=report_html, debug=True)
 
             LOG.info(f"[终端任务执行完毕] {report_path}") 
 
