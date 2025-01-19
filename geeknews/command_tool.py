@@ -110,6 +110,7 @@ class GeeknewsCommandHandler:
             LOG.info(f"[终端任务执行完毕] {report_path}") 
 
     def handle_email(self, args):
+        hackernews_manager = self.geeknews_manager.hackernews_manager
         email_notifier = self.geeknews_manager.email_notifier
         hackernews_dpm = self.geeknews_manager.hackernews_dpm
         
@@ -129,9 +130,12 @@ class GeeknewsCommandHandler:
 
             with open(report_path) as f:
                 report_html = f.read()
+
+            story_title = hackernews_manager.get_daily_top_story_title(locale, date)
+            final_title = f'HN热点: {story_title}' if story_title else 'Hacker News 热点汇总'
             
             email_notifier.dry_run = False
-            email_notifier.notify(title=f'Hacker News热点汇总: {date.formatted}', content=report_html, debug=False)
+            email_notifier.notify(title=final_title, content=report_html, debug=False)
         
         elif args.list:
             emails = email_notifier.beta_testers

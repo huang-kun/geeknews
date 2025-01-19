@@ -41,7 +41,10 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager):
     with open(report_path) as f:
         report_html = f.read()
 
-    geeknews_manager.email_notifier.notify(title='Hacker News 今日热点', content=report_html)
+    story_title = geeknews_manager.hackernews_manager.get_daily_top_story_title(locale, date)
+    final_title = f'HN热点: {story_title}' if story_title else 'Hacker News 热点汇总'
+    
+    geeknews_manager.email_notifier.notify(title=final_title, content=report_html)
 
     LOG.info(f"[定时任务执行完毕]")
 
