@@ -147,8 +147,8 @@ class GeeknewsEmailNotifier:
 
         try:
             with smtplib.SMTP(host=host, port=port) as server:
-                if debug:
-                    server.set_debuglevel(1)
+                # if debug:
+                #     server.set_debuglevel(1)
                 LOG.debug("登录SMTP服务器")
                 server.starttls()
                 server.login(sender, self.password)

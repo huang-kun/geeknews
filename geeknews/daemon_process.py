@@ -24,16 +24,15 @@ def graceful_shutdown(signum, frame):
     sys.exit(0)  # 安全退出程序
 
 
-def hacker_news_daily_job(geeknews_manager: GeeknewsManager):
+def hacker_news_daily_job(geeknews_manager: GeeknewsManager, override_content=True, debug_send_email=False):
     locale = 'zh_cn'
     date = GeeknewsDate.now()
-    override = True
 
     LOG.info(f'[开始执行定时任务]Hacker News每日热点汇总, date: {date}')
     report_path = geeknews_manager.hackernews_dpm.get_report_file_path(locale=locale, date=date, ext='.html')
     
     if not os.path.exists(report_path):
-        geeknews_manager.hackernews_manager.generate_daily_report(locale=locale, date=date, override=override)
+        geeknews_manager.hackernews_manager.generate_daily_report(locale=locale, date=date, override=override_content)
     if not os.path.exists(report_path):
         LOG.error("[定时任务]未发现任何报告")
         return
@@ -44,7 +43,7 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager):
     story_title = geeknews_manager.hackernews_manager.get_daily_top_story_title(locale, date)
     final_title = f'HN热点: {story_title}' if story_title else 'Hacker News 热点汇总'
     
-    geeknews_manager.email_notifier.notify(title=final_title, content=report_html)
+    geeknews_manager.email_notifier.notify(title=final_title, content=report_html, debug=debug_send_email)
 
     LOG.info(f"[定时任务执行完毕]")
 
@@ -54,17 +53,24 @@ def start_process():
     signal.signal(signal.SIGTERM, graceful_shutdown)
 
     geeknews_manager = GeeknewsManager()
+    override_content = False
+    debug_send_email = True
 
     # 启动时立即执行（如不需要可注释）
-    # hacker_news_daily_job(geeknews_manager)
+    hacker_news_daily_job(geeknews_manager, override_content, debug_send_email)
 
     hn_freq_days = geeknews_manager.hackernews_config.update_freq_days
     hn_exec_time = geeknews_manager.hackernews_config.update_exec_time
     hn_exec_tz = geeknews_manager.hackernews_config.exec_time_zone
 
+    override_content = True
+    debug_send_email = False
+
     schedule.every(hn_freq_days).days.at(hn_exec_time, hn_exec_tz).do(
         hacker_news_daily_job, 
         geeknews_manager,
+        override_content,
+        debug_send_email,
     )
 
     try:
