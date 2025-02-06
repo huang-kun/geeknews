@@ -9,13 +9,17 @@ from geeknews.utils.md2html import MarkdownRenderer
 from geeknews.llm import LLM
 from geeknews.notifier.email_notifier import GeeknewsEmailNotifier
 from geeknews.configparser import GeeknewsConfigParser
-from geeknews.config import GeeknewsEmailConfig
+from geeknews.config import GeeknewsEmailConfig, GeeknewsWechatPPConfig
 
 from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager
 from geeknews.hackernews.manager import HackernewsManager
 
 from geeknews.manager import GeeknewsManager    
+
+from geeknews.notifier.wechatpp.client.client import WppClient
+from geeknews.notifier.wechatpp.client.base import WppRequest, WppBaseClient
+from geeknews.notifier.wechatpp.api.draft import *
 
 
 class GeeknewsCommandHandler:
@@ -42,6 +46,10 @@ class GeeknewsCommandHandler:
         email_parser.add_argument('--merge', help='从文件里批量添加邮箱列表')
         email_parser.add_argument('--remove', help='删除邮箱')
         email_parser.set_defaults(func=self.handle_email)
+
+        wpp_parser = subparsers.add_parser('wpp', help='公众号接口测试')
+        wpp_parser.add_argument('--get-drafts', action='store_true', help='批量获取草稿')
+        wpp_parser.set_defaults(func=self.handle_wechat_public_platform)
 
         return parser
 
@@ -157,6 +165,16 @@ class GeeknewsCommandHandler:
         
         elif args.remove:
             email_notifier.remove_tester_email(args.remove)
+
+
+    def handle_wechat_public_platform(self, args):
+        config = GeeknewsWechatPPConfig.get_from_parser()
+        client = WppClient(config)
+
+        if args.get_drafts:
+            print(client.batch_get_drafts())
+        else:
+            print('Not supported yet.')
 
 
 def start_command_tool():
