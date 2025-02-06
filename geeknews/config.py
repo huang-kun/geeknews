@@ -21,8 +21,12 @@ class GeeknewsWechatPPConfig:
     section = 'WechatPP'
 
     access_token_path: str
+    author_name: str
+    default_thumb_media_id: str
 
     @classmethod
     def get_from_parser(cls, configparser: GeeknewsConfigParser = GeeknewsConfigParser()):
         cls.access_token_path = configparser.get_abs_path(cls.section, 'access_token_path')
+        cls.author_name = configparser.get(cls.section, 'author_name')
+        cls.default_thumb_media_id = configparser.get(cls.section, 'default_thumb_media_id')
         return cls()

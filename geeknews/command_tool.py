@@ -20,6 +20,7 @@ from geeknews.manager import GeeknewsManager
 from geeknews.notifier.wechatpp.client.client import WppClient
 from geeknews.notifier.wechatpp.client.base import WppRequest, WppBaseClient
 from geeknews.notifier.wechatpp.api.draft import *
+from geeknews.notifier.wpp_notifier import WppNotifier
 
 
 class GeeknewsCommandHandler:
@@ -49,6 +50,7 @@ class GeeknewsCommandHandler:
 
         wpp_parser = subparsers.add_parser('wpp', help='公众号接口测试')
         wpp_parser.add_argument('--get-drafts', action='store_true', help='批量获取草稿')
+        wpp_parser.add_argument('--publish', action='store_true', help='发布公众号文章')
         wpp_parser.set_defaults(func=self.handle_wechat_public_platform)
 
         return parser
@@ -168,11 +170,24 @@ class GeeknewsCommandHandler:
 
 
     def handle_wechat_public_platform(self, args):
-        config = GeeknewsWechatPPConfig.get_from_parser()
-        client = WppClient(config)
+        llm = None
+        configparser = GeeknewsConfigParser()
+        hackernews_config = HackernewsConfig.get_from_parser(configparser)
+        hackernews_dpm = HackernewsDataPathManager(hackernews_config)
+        
+        hackernews_manager = HackernewsManager(llm, hackernews_config, hackernews_dpm)
+
+        wpp_config = GeeknewsWechatPPConfig.get_from_parser(configparser)
+        wpp_client = WppClient(wpp_config)
+        wpp_notifier = WppNotifier(
+            config=wpp_config,
+            hackernews_manager=hackernews_manager
+        )
 
         if args.get_drafts:
-            print(client.batch_get_drafts())
+            print(wpp_client.batch_get_drafts())
+        elif args.publish:
+            print(wpp_notifier.publish_report())
         else:
             print('Not supported yet.')
 

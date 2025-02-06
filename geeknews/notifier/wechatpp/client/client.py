@@ -13,13 +13,7 @@ class WppClient(WppBaseClient):
         result = self.send(api)
         return result
     
-    def add_draft(self):
-        article = WppDraftArticle(
-            title="hello again",
-            author="jack",
-            content="This is another article.",
-            thumb_media_id="IrcTRfmSW2Mw2qd611b7FlF2Pte4iytnSTZTvuPv6Kgh0tItrkcxi1-0wnDVwHhe",
-        )
+    def add_draft(self, article: WppDraftArticle):
         api = WppDraftAddArticleApi(self.access_token, article)
         return self.send(api)
 
