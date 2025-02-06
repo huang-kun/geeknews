@@ -1,4 +1,4 @@
-import os, json
+import os, re, json
 import mistune
 from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
@@ -18,9 +18,14 @@ class HackernewsReportWriter:
     def __init__(self, datapath_manager: HackernewsDataPathManager):
         self.datapath_manager = datapath_manager
         self.markdown_renderer = MarkdownRenderer()
+        self.embeded_urls = []
+        self.re_link = re.compile(r'\[>>\]\((?P<url>.*?)\)')
 
-    def generate_report(self, category='topstories', locale='zh_cn', date=GeeknewsDate.now(), override=False):
-        '''Combine today's summaries to daily report.'''
+    def generate_report(self, category='topstories', locale='zh_cn', date=GeeknewsDate.now(), override=False, extract_links=False):
+        '''
+        Combine today's summaries to daily report.
+        If extrack_links=True, then extract embeded links to bottom.
+        '''
         report_path = self.datapath_manager.get_report_file_path(locale, date)
         if not override and os.path.exists(report_path):
             return
@@ -47,20 +52,33 @@ class HackernewsReportWriter:
                 continue
             with open(sum_path) as f:
                 sum_content = f.read().strip()
+                if extract_links:
+                    sum_content = self.re_link.sub(self.get_link_number, sum_content)
                 report_contents.append('###' + sum_content)
                 report_contents.append('')
+        
+        # Put urls in reference section.
+        reference_contents = []
+        if extract_links and self.embeded_urls:
+            reference_contents.append('#### ' + self.get_reference_title(locale))
+            for i, url in enumerate(self.embeded_urls):
+                reference_contents.append(f'- [{i+1}]: {url}')
 
         sum_dir = self.datapath_manager.get_summary_full_dir(locale, date)
         short_story_path = os.path.join(sum_dir, 'short_stories.md')
         if os.path.exists(short_story_path):
             with open(short_story_path) as f:
                 story_list_content = f.read()
-                report_contents.append('#### ' + self.get_reference_title(locale))
+                report_contents.append('#### ' + self.get_other_topics_title(locale))
                 report_contents.append(story_list_content)
 
         if len(report_contents) <= 2:
             LOG.error(f'没有足够的信息生成报告')
             return
+        
+        # Put reference section to the bottom
+        if reference_contents:
+            report_contents.extend(reference_contents)
 
         final_report_content = '\n'.join(report_contents)
         with open(report_path, 'w') as f:
@@ -88,6 +106,9 @@ class HackernewsReportWriter:
         with open(html_path, 'w') as f:
             f.write(html_content)
         
+        if self.embeded_urls:
+            self.embeded_urls = []
+        
         LOG.debug(f"完成报告生成: {report_path}")
 
     def get_title(self, locale):
@@ -96,12 +117,23 @@ class HackernewsReportWriter:
         else:
             return "Hacker News Daily Stories"
         
-    def get_reference_title(self, locale):
+    def get_other_topics_title(self, locale):
         if locale == 'zh_cn':
             return "其他热点摘要"
         else:
             return "Other topics"
-
+        
+    def get_reference_title(self, locale):
+        if locale == 'zh_cn':
+            return "引用来源"
+        else:
+            return "Reference"
+                
+    def get_link_number(self, link_match):
+        url = link_match.group('url')
+        self.embeded_urls.append(url)
+        link_num = len(self.embeded_urls)
+        return f'[{link_num}]'
 
 def test_hackernews_report_writer():
     config = HackernewsConfig.get_from_parser()
