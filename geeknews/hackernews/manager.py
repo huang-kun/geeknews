@@ -29,7 +29,10 @@ class HackernewsManager:
         self.api_client.fetch_daily_stories(date)
         self.article_editor.generate_topstories_articles(date)
         self.summary_writer.generate_daily_summaries(locale, date, override)
-        self.report_writer.generate_report('topstories', locale, date, override)
+        # generate html
+        self.report_writer.generate_report('topstories', locale=locale, date=date, override=override, extract_links=False)
+        # generate wechat public platform html
+        self.report_writer.generate_report('topstories', locale=locale, date=date, override=override, extract_links=True, md_suffix_name='.wpp', html_suffix_name='.wpp', css_inline=True)
 
     def get_daily_top_story_title(self, locale='zh_cn', date=GeeknewsDate.now()):
         # find story id from topstories.json

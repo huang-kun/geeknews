@@ -88,24 +88,31 @@ class GeeknewsCommandHandler:
                 LOG.error(f"[终端任务]渲染失败, 文件格式要求是.md")
                 return
             
+            md_basename = os.path.basename(markdown_path)
+            md_name, _ = os.path.splitext(md_basename)
+            md_name_suffix = md_name.split('.')[-1] if '.' in md_name else ''
+            
             renderer = MarkdownRenderer()
             html = renderer.generate_html_from_md_path(
                 markdown_path=markdown_path,
                 action='mistune',
                 title='Geeknews',
                 footer='2025. Geeknews',
+                css_inline_flag=bool(md_name_suffix),
             )
             renderer.clean_all_caches()
 
             markdown_dir = os.path.dirname(markdown_path)
             basename = os.path.basename(markdown_path)
             filename, _ = os.path.splitext(basename)
+            if md_name_suffix and not filename.endswith(md_name_suffix):
+                filename = filename + '.' + md_name_suffix
             html_path = os.path.join(markdown_dir, filename+'.html')
             
             with open(html_path, 'w') as f:
                 f.write(html)
 
-            LOG.info(f"[终端任务]渲染完成 {html_path}")
+            LOG.debug(f"[终端任务]渲染完成 {html_path}")
         
         elif args.send:
             LOG.info('[开始执行终端任务]发送Hacker News测试邮件')

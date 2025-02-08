@@ -4,6 +4,7 @@ import shutil
 import mistune
 import requests
 import gh_md_to_html
+import css_inline
 from geeknews.utils.logger import LOG
 
 # github css cdn
@@ -61,9 +62,12 @@ class MarkdownRenderer:
         except Exception as e:
             LOG.error(f"清理渲染html缓存失败: {e}")
 
-    def generate_html_from_md_path(self, markdown_path, action='mistune', title='', footer=None):
-        html = self.generate_html_by_gh_md(markdown_path, action, footer)
-        return self._modify_html(html, title)
+    def generate_html_from_md_path(self, markdown_path, action='mistune', title='', footer=None, css_inline_flag=False):
+        html = self.generate_html_by_gh_md(markdown_path, action, footer, css_inline_flag)
+        html = self._modify_html(html, title)
+        if css_inline_flag:
+            html = css_inline.inline(html)
+        return html
     
     def _modify_html(self, html_content, title=''):
         # Insert html head and body tags into generated content
@@ -121,7 +125,7 @@ class MarkdownRenderer:
         
         return ''
     
-    def generate_html_by_gh_md(self, markdown_path, action, footer=None):
+    def generate_html_by_gh_md(self, markdown_path, action, footer=None, css_inline_flag=False):
         '''markdown to html with github css style'''
         # https://github.com/phseiff/github-flavored-markdown-to-html
 
@@ -136,6 +140,8 @@ class MarkdownRenderer:
             convert_func = self.generate_html_by_github_api
 
         try:
+            use_css_link = not css_inline_flag
+
             html = gh_md_to_html.main(
                 md_origin=markdown_path, 
                 origin_type='file',
@@ -147,9 +153,9 @@ class MarkdownRenderer:
                 math='false', # if true, then parse some chars (like $) to formulas and generate svg tags
                 core_converter=convert_func,
                 box_width='800px',
-                enable_css_saving=True, # if false, then css will be inserted into html, no <link>
+                enable_css_saving=use_css_link, # if false, then css will be inserted into html, no <link>
             )
-            
+
             return html
 
         except Exception as e:

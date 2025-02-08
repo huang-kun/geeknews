@@ -21,12 +21,22 @@ class HackernewsReportWriter:
         self.embeded_urls = []
         self.re_link = re.compile(r'\[>>\]\((?P<url>.*?)\)')
 
-    def generate_report(self, category='topstories', locale='zh_cn', date=GeeknewsDate.now(), override=False, extract_links=False):
+    def generate_report(
+            self, 
+            category='topstories', 
+            locale='zh_cn', 
+            date=GeeknewsDate.now(), 
+            override=False, 
+            extract_links=False, 
+            md_suffix_name = '',
+            html_suffix_name='',
+            css_inline=False,
+        ):
         '''
         Combine today's summaries to daily report.
         If extrack_links=True, then extract embeded links to bottom.
         '''
-        report_path = self.datapath_manager.get_report_file_path(locale, date)
+        report_path = self.datapath_manager.get_report_file_path(locale=locale, date=date, ext=md_suffix_name+'.md')
         if not override and os.path.exists(report_path):
             return
 
@@ -93,6 +103,7 @@ class HackernewsReportWriter:
             action='mistune',
             title=html_title,
             footer=html_footer,
+            css_inline_flag=css_inline,
         )
         self.markdown_renderer.clean_all_caches()
 
@@ -101,6 +112,8 @@ class HackernewsReportWriter:
         
         html_basename = os.path.basename(report_path)
         html_name, _ = os.path.splitext(html_basename)
+        if html_suffix_name and not html_name.endswith(html_suffix_name):
+            html_name += html_suffix_name
         html_path = os.path.join(os.path.dirname(report_path), html_name + '.html')
         
         with open(html_path, 'w') as f:

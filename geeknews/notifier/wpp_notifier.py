@@ -21,7 +21,7 @@ class WppNotifier:
 
     def publish_report(self, locale = 'zh_cn', date = GeeknewsDate.now(), thumb_media_id = None):
         # find report
-        report_path = self.hackernews_manager.datapath_manager.get_report_file_path(locale=locale, date=date, ext='.md')
+        report_path = self.hackernews_manager.datapath_manager.get_report_file_path(locale=locale, date=date, ext='.wpp.html')
         if not report_path or not os.path.exists(report_path):
             LOG.error(f'公众号发布失败: 没有当日报告{date}')
             return
