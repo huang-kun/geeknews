@@ -66,27 +66,28 @@ class HackernewsReportWriter:
                     sum_content = self.re_link.sub(self.get_link_number, sum_content)
                 report_contents.append('###' + sum_content)
                 report_contents.append('')
-        
-        # Put urls in reference section.
-        reference_contents = []
-        if extract_links and self.embeded_urls:
-            reference_contents.append('#### ' + self.get_reference_title(locale))
-            for i, url in enumerate(self.embeded_urls):
-                reference_contents.append(f'- [{i+1}]: {url}')
 
         sum_dir = self.datapath_manager.get_summary_full_dir(locale, date)
         short_story_path = os.path.join(sum_dir, 'short_stories.md')
         if os.path.exists(short_story_path):
             with open(short_story_path) as f:
                 story_list_content = f.read()
+                if extract_links:
+                    story_list_content = self.re_link.sub(self.get_link_number, story_list_content)
                 report_contents.append('#### ' + self.get_other_topics_title(locale))
                 report_contents.append(story_list_content)
+                report_contents.append('')
 
         if len(report_contents) <= 2:
             LOG.error(f'没有足够的信息生成报告')
             return
         
-        # Put reference section to the bottom
+        # Put reference section to the bottom and list urls
+        reference_contents = []
+        if extract_links and self.embeded_urls:
+            reference_contents.append('#### ' + self.get_reference_title(locale))
+            for i, url in enumerate(self.embeded_urls):
+                reference_contents.append(f'{i+1}. {url}')
         if reference_contents:
             report_contents.extend(reference_contents)
 
@@ -146,7 +147,7 @@ class HackernewsReportWriter:
         url = link_match.group('url')
         self.embeded_urls.append(url)
         link_num = len(self.embeded_urls)
-        return f'[{link_num}]'
+        return f'[^{link_num}]'
 
 def test_hackernews_report_writer():
     config = HackernewsConfig.get_from_parser()
