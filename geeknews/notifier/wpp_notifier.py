@@ -38,7 +38,7 @@ class WppNotifier:
             title=final_title,
             author=self.config.author_name,
             content=report_content,
-            thumb_media_id=thumb_media_id if thumb_media_id else self.config.default_thumb_media_id
+            thumb_media_id=thumb_media_id if thumb_media_id else self.config.default_media_id
         )
 
         draft_result = self.api_client.add_draft(article)
