@@ -14,7 +14,7 @@ GITHUB_MD_CSS_URL="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.
 # Wrap html tags around content
 # https://github.com/KrauseFx/markdown-to-html-github-style/blob/master/convert.js
 # "markdown-body" is dark mode supported.
-HTML_TEMPLATE = """<!DOCTYPE html>
+HTML_GITHUB_TEMPLATE = """<!DOCTYPE html>
 <html>
 <head>
 <title>{title}</title>
@@ -30,6 +30,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </html>
 """
 
+HTML_CSS_STYLE_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+<title>{title}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" content="text/html"/>
+<style>
+{css_style}
+</style>
+</head>
+<body>
+{content}
+</body>
+</html>
+"""
+
 class MarkdownRenderer:
     '''Markdown to html'''
     
@@ -39,9 +56,21 @@ class MarkdownRenderer:
         self.re_meta_charset = re.compile(r'<meta charset=.*?>') # find <meta charset=...>
         self.re_style = re.compile(r'<style.*?\/style>', re.DOTALL) # find <style> tags
         self.re_head_end = re.compile(r'<\/head>')
+        self.re_body_end = re.compile(r'<\/body>')
         self.re_line_terminators = re.compile(r'\n{2,}')
         self.re_comment = re.compile(r'<!-- .*? -->')
         self.re_subtitle_tag = re.compile(r'<h[^12]>') # find <h3>, <h4> ...
+        self.re_footnote = re.compile(r'\[\^(?P<fn>\d+)\]')
+
+        # load default css
+        css_content = ''
+        css_dir = os.path.join(os.getcwd(), 'css')
+        css_files = list(filter(lambda x: x.endswith('.css'), os.listdir(css_dir)))
+        if css_files:
+            css_path = os.path.join(css_dir, css_files[0])
+            with open(css_path) as f:
+                css_content = f.read()
+        self.default_css = css_content
     
     @staticmethod
     def get_cache_dir():
@@ -63,13 +92,18 @@ class MarkdownRenderer:
             LOG.error(f"清理渲染html缓存失败: {e}")
 
     def generate_html_from_md_path(self, markdown_path, action='mistune', title='', footer=None, css_inline_flag=False):
+        if action == 'mistune':
+            # prefers default (sspai styled) css rather then github styled css
+            return self.generate_html(markdown_path, self.default_css, title, footer, css_inline_flag)
+        
         html = self.generate_html_by_gh_md(markdown_path, action, footer, css_inline_flag)
-        html = self._modify_html(html, title)
+        html = self._modify_github_html(html, title)
         if css_inline_flag:
             html = css_inline.inline(html)
+        
         return html
     
-    def _modify_html(self, html_content, title=''):
+    def _modify_github_html(self, html_content, title=''):
         # Insert html head and body tags into generated content
         if '<html>' not in html_content[:20]:
             # remove css link from content
@@ -77,7 +111,7 @@ class MarkdownRenderer:
             # remove meta chatset from content
             html_content = self.re_meta_charset.sub('', html_content, count=1)
             # Insert html head and body tags
-            html_content = HTML_TEMPLATE.format(
+            html_content = HTML_GITHUB_TEMPLATE.format(
                 title=title,
                 css_path=GITHUB_MD_CSS_URL,
                 content=html_content,
@@ -169,3 +203,35 @@ class MarkdownRenderer:
         
         footer_style = "font-size: 0.875rem; line-height: 1.25; text-align: center; padding: 20px 0;"
         return f"<footer style=\"{footer_style}\">\n<p style=\"margin: 0;\">{footer}</p>\n</footer>"
+    
+    def generate_html(self, markdown_path, css_style, title='', footer=None, css_inline_flag=False):
+        if not os.path.exists(markdown_path):
+            return ''
+
+        # parse md to html
+        with open(markdown_path) as f:
+            md_content = f.read()
+        
+        html_content = mistune.html(md_content)
+
+        # check footnotes
+        if self.re_footnote.search(html_content):
+            html_content = self.re_footnote.sub('<span class="footnote-tag">\g<fn></span>', html_content)
+
+        # wrap html tags
+        full_html = HTML_CSS_STYLE_TEMPLATE.format(
+            title=title if title else 'geeknews',
+            css_style=css_style,
+            content=html_content,
+        )
+
+        # insert footer
+        if footer:
+            footer_content = f"<footer>\n<small>\n{footer}\n</small>\n</footer>\n"
+            full_html = self.re_body_end.sub(footer_content+'</body>', full_html, count=1)
+        
+        # css inline
+        if css_inline_flag:
+            full_html = css_inline.inline(full_html)
+
+        return full_html
