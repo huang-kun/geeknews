@@ -44,6 +44,7 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager, override_content=Tr
     final_title = f'HN热点: {story_title}' if story_title else 'Hacker News 热点汇总'
     
     geeknews_manager.email_notifier.notify(title=final_title, content=report_html, debug=debug_send_email)
+    geeknews_manager.wpp_notifier.publish_report(locale=locale, date=date, thumb_media_id=None)
 
     LOG.info(f"[定时任务执行完毕]")
 

@@ -10,6 +10,9 @@ from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager
 from geeknews.hackernews.manager import HackernewsManager
 
+from geeknews.config import GeeknewsWechatPPConfig
+from geeknews.notifier.wpp_notifier import WppNotifier
+
 
 class GeeknewsManager:
 
@@ -25,6 +28,12 @@ class GeeknewsManager:
         email_config = GeeknewsEmailConfig.get_from_parser(configparser)
         email_notifier = GeeknewsEmailNotifier(email_config)
 
+        wpp_config = GeeknewsWechatPPConfig.get_from_parser(configparser)
+        wpp_notifier = WppNotifier(
+            config=wpp_config,
+            hackernews_manager=hackernews_manager
+        )
+
         self.llm = llm
         self.configparser = configparser
 
@@ -34,3 +43,6 @@ class GeeknewsManager:
         
         self.email_config = email_config
         self.email_notifier = email_notifier
+
+        self.wpp_config = wpp_config
+        self.wpp_notifier = wpp_notifier
