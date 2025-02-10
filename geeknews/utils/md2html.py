@@ -217,6 +217,8 @@ class MarkdownRenderer:
         # check footnotes
         if self.re_footnote.search(html_content):
             html_content = self.re_footnote.sub('<span class="footnote-tag">\g<fn></span>', html_content)
+            if len(re.findall(r'<ol>', html_content)) == 1:
+                html_content = re.sub(r'<ol>', '<ol id="footnotes">', html_content, count=1)
 
         # wrap html tags
         full_html = HTML_CSS_STYLE_TEMPLATE.format(

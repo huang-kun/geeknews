@@ -234,7 +234,7 @@ ul p {
 ol#footnotes {
     font-size: 0.9em;
     counter-reset: footer-counter;
-    list-style: none;
+    /* list-style: none; */
     color: light-dark(#555, #d3d3d3);
     padding-left: 1em;
     margin: 10 0 0 0;
@@ -243,8 +243,8 @@ ol#footnotes {
 ol#footnotes li {
     font-weight: 400;
     line-height: 1em;
-    list-style-type: none;
-    margin: 10px 0 10px -14px;
+    /* list-style-type: none; */
+    margin: 10px;
     padding: 0;
 }
 
