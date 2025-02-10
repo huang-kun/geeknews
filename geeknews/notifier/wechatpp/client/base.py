@@ -63,7 +63,8 @@ class WppBaseClient:
                     self.expire_date = datetime.fromisoformat(expire_date_str)
         else:
             token_dir = os.path.dirname(config.access_token_path)
-            os.makedirs(token_dir)
+            if not os.path.exists(token_dir):
+                os.makedirs(token_dir)
     
     def is_token_valid(self):
         if not self.access_token:
