@@ -53,6 +53,9 @@ class WppBaseClient:
         self.access_token = ''
         self.expire_date = None
 
+        if not self.app_id or not self.app_secret:
+            LOG.warning(f'{WPP_TAG}警告: 没有公众号id和secret')
+
         if os.path.exists(config.access_token_path):
             with open(config.access_token_path) as f:
                 contents = json.load(f)
