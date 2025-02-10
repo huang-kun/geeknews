@@ -193,6 +193,9 @@ class HackernewsSummaryWriter:
             # replace comment tag
             comment_title = TRANSLATION_COMMENT_TITLE.get(locale, 'User comments') + ': '
             content = self.re_comment_tag.sub(comment_title, content)
+            # replace no comment tag
+            if 'NO_COMMENT' in content:
+                content = content.replace('NO_COMMENT', '', 1)
             
         else:
             # add article link to end of content
