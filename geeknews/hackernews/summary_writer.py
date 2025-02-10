@@ -4,6 +4,7 @@ from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
 from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager
+from geeknews.hackernews.api_client import HackernewsClient
 
 TRANSLATION_VAR = '\{translate_target_language\}'
 TRANSLATION_LOCALE_TO_LANGUAGE = {
@@ -87,7 +88,7 @@ class HackernewsSummaryWriter:
         summary_content = self.llm.get_assistant_message(system_prompt, article_content)
         final_content = self.modify_summarized_content(
             article_id=article_id, 
-            article_url=story.get('url', ''), 
+            article_url=story.get('url', HackernewsClient.get_default_story_url(article_id)), 
             content=summary_content, 
             locale=locale
         )

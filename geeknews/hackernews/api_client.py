@@ -130,7 +130,7 @@ class HackernewsClient:
                     'id': story['id'],
                     'by': story.get('by', ''),
                     'title': story['title'],
-                    'url': story['url'],
+                    'url': story.get('url', self.get_default_story_url(story['id'])),
                     'score': story.get('score', 0),
                     'time': story.get('time', 0),
                     'comment_count': len(story['kids']) if 'kids' in story else 0,
@@ -225,6 +225,10 @@ class HackernewsClient:
 
     def get_story_path(self, id, date=GeeknewsDate.now()):
         return self.datapath_manager.get_story_file_path(id, date)
+    
+    @staticmethod
+    def get_default_story_url(story_id):
+        return f'https://news.ycombinator.com/item?id={story_id}'
 
 
 def test_hackernews_client():

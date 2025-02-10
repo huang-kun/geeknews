@@ -8,6 +8,7 @@ from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
 from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager
+from geeknews.hackernews.api_client import HackernewsClient
 
 """
 ### [A minimax chess engine in regular expressions](https://nicholas.carlini.com/writing/2025/regex-chess.html)
@@ -71,10 +72,11 @@ class HackernewsArticleEditor:
         for story in stories:
             story_text = self.parse_text(story.get('text', ''))
             story_comments = list(map(self.parse_comment, story.get('comments', [])))
+            story_id = story.get('id', 0)
             simple_story = HackernewsSimpleStory(
-                id=story.get('id', 0),
+                id=story_id,
                 title=story.get('title', ''),
-                url=story.get('url', ''),
+                url=story.get('url', HackernewsClient.get_default_story_url(story_id)),
                 text=story_text,
                 comments=story_comments,
                 score=story.get('score', 0),
