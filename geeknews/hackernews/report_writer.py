@@ -21,6 +21,33 @@ class HackernewsReportWriter:
         self.embeded_urls = []
         self.re_link = re.compile(r'\[>>\]\((?P<url>.*?)\)')
 
+    def generate_html_report(
+            self,
+            report_type,
+            locale='zh_cn', 
+            date=GeeknewsDate.now(), 
+            override=False, 
+        ):
+        if report_type == 'web':
+            self.generate_report(
+                'topstories', 
+                locale=locale, 
+                date=date, 
+                override=override, 
+                extract_links=False
+            )
+        elif report_type == 'wpp':
+            self.generate_report(
+                'topstories', 
+                locale=locale, 
+                date=date, 
+                override=override, 
+                extract_links=True, 
+                md_suffix_name='.wpp', 
+                html_suffix_name='.wpp', 
+                css_inline=True
+            )
+
     def generate_report(
             self, 
             category='topstories', 
