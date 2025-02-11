@@ -48,6 +48,24 @@ class WppNotifier:
             draft_id_path = os.path.join(report_dir, 'wpp_draft_id.txt')
             with open(draft_id_path, 'w') as f:
                 f.write(draft_id_path)
-            LOG.info(f'公众号发布成功: 草稿id - {draft_id}')
+            LOG.info(f'公众号发布草稿成功: id - {draft_id}')
         else:
-            LOG.error(f'公众号发布失败: {json.dumps(draft_result)}')
+            LOG.error(f'公众号发布草稿失败: {json.dumps(draft_result)}')
+
+    def publish_report(self, locale = 'zh_cn', date = GeeknewsDate.now()):
+        report_path = self.hackernews_manager.datapath_manager.get_report_file_path(locale=locale, date=date, ext='.wpp.html')
+        report_dir = os.path.dirname(report_path)
+        draft_id_path = os.path.join(report_dir, 'wpp_draft_id.txt')
+
+        if not os.path.exists(draft_id_path):
+            LOG.error(f'公众号发布失败: 没有草稿信息{date}')
+            return
+        
+        with open(draft_id_path) as f:
+            draft_id = f.read().strip()
+        
+        result = self.api_client.publish(draft_id)
+        if 'errcode' in result:
+            LOG.error(f'公众号发布失败: {json.dumps(result)}')
+        else:
+            LOG.info(f'公众号发布成功, 等待审核: {json.dumps(result)}')
