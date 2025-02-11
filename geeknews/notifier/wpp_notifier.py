@@ -28,7 +28,7 @@ class WppNotifier:
         
         # get report content
         story_title = self.hackernews_manager.get_daily_top_story_title(locale, date)
-        final_title = f'HN热点: {story_title}' if story_title else 'Hacker News 热点汇总'
+        final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
         
         with open(report_path) as f:
             report_content = f.read()

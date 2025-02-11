@@ -163,6 +163,6 @@ def test_geeknews_email_notifier():
     notifier = GeeknewsEmailNotifier(config)
     notifier.notify(
         title='Email testing',
-        content='<h1>Hacker News 今日热点</h1>',
+        content='<h1>HN今日热点</h1>',
         debug=True,
     )

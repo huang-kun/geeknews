@@ -154,9 +154,9 @@ class HackernewsReportWriter:
 
     def get_title(self, locale):
         if locale == 'zh_cn':
-            return "Hacker News 今日热点"
+            return "HN今日热点"
         else:
-            return "Hacker News Daily Stories"
+            return "HN: Daily Stories"
         
     def get_other_topics_title(self, locale):
         if locale == 'zh_cn':

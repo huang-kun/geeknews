@@ -41,7 +41,7 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager, override_content=Tr
         report_html = f.read()
 
     story_title = geeknews_manager.hackernews_manager.get_daily_top_story_title(locale, date)
-    final_title = f'HN热点: {story_title}' if story_title else 'Hacker News 热点汇总'
+    final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
     
     geeknews_manager.email_notifier.notify(title=final_title, content=report_html, debug=debug_send_email)
     geeknews_manager.wpp_notifier.post_draft(locale=locale, date=date, thumb_media_id=None)

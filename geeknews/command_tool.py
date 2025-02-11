@@ -127,7 +127,7 @@ class GeeknewsCommandHandler:
                 report_html = f.read()
             
             story_title = hackernews_manager.get_daily_top_story_title(locale, date)
-            final_title = f'HN热点: {story_title}' if story_title else 'Hacker News 热点汇总'
+            final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
 
             email_notifier.dry_run = False
             email_notifier.notify(title=final_title, content=report_html, debug=True)
@@ -157,7 +157,7 @@ class GeeknewsCommandHandler:
                 report_html = f.read()
 
             story_title = hackernews_manager.get_daily_top_story_title(locale, date)
-            final_title = f'HN热点: {story_title}' if story_title else 'Hacker News 热点汇总'
+            final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
             
             email_notifier.dry_run = False
             email_notifier.notify(title=final_title, content=report_html, debug=False)
