@@ -21,6 +21,7 @@ h1 {
     line-height: 1.1;
     padding: 16px 0;
     margin-bottom: 20px;
+    text-align: center;
 }
 
 h2,
@@ -89,6 +90,10 @@ ul {
     margin-bottom: 20px;
     padding-left: 1.1em;
     line-height: 1.8;
+}
+
+ol {
+    margin-left: 10px;
 }
 
 li {
@@ -237,14 +242,13 @@ ol#footnotes {
     /* list-style: none; */
     color: light-dark(#555, #d3d3d3);
     padding-left: 1em;
-    margin: 10 0 0 0;
 }
 
 ol#footnotes li {
     font-weight: 400;
     line-height: 1em;
     /* list-style-type: none; */
-    margin: 10px;
+    margin: 10px 0;
     padding: 0;
 }
 
