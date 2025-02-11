@@ -65,7 +65,7 @@ class WppNotifier:
             draft_id = f.read().strip()
         
         result = self.api_client.publish(draft_id)
-        if 'errcode' in result:
+        if 'errcode' in result and result['errcode'] != 0:
             LOG.error(f'公众号发布失败: {json.dumps(result)}')
         else:
             LOG.info(f'公众号发布成功, 等待审核: {json.dumps(result)}')

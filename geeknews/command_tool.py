@@ -198,9 +198,9 @@ class GeeknewsCommandHandler:
         elif args.get_materials:
             print(wpp_client.batch_get_material())
         elif args.post:
-            print(wpp_notifier.post_draft())
+            wpp_notifier.post_draft()
         elif args.publish:
-            print(wpp_notifier.publish_report())
+            wpp_notifier.publish_report()
         else:
             print('Not supported yet.')
 
