@@ -58,7 +58,7 @@ def start_process():
     debug_send_email = True
 
     # 启动时立即执行（如不需要可注释）
-    hacker_news_daily_job(geeknews_manager, override_content, debug_send_email)
+    # hacker_news_daily_job(geeknews_manager, override_content, debug_send_email)
 
     hn_freq_days = geeknews_manager.hackernews_config.update_freq_days
     hn_exec_time = geeknews_manager.hackernews_config.update_exec_time
