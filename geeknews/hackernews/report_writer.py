@@ -45,7 +45,8 @@ class HackernewsReportWriter:
                 extract_links=True, 
                 md_suffix_name='.wpp', 
                 html_suffix_name='.wpp', 
-                css_inline=True
+                css_inline=True,
+                remove_h1=False,
             )
 
     def generate_report(
@@ -58,6 +59,7 @@ class HackernewsReportWriter:
             md_suffix_name = '',
             html_suffix_name='',
             css_inline=False,
+            remove_h1=False,
         ):
         '''
         Combine today's summaries to daily report.
@@ -132,6 +134,7 @@ class HackernewsReportWriter:
             title=html_title,
             footer=html_footer,
             css_inline_flag=css_inline,
+            remove_h1=remove_h1,
         )
         self.markdown_renderer.clean_all_caches()
 

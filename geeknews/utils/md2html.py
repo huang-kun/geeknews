@@ -59,6 +59,7 @@ class MarkdownRenderer:
         self.re_body_end = re.compile(r'<\/body>')
         self.re_line_terminators = re.compile(r'\n{2,}')
         self.re_comment = re.compile(r'<!-- .*? -->')
+        self.re_main_title = re.compile(r'<h1>.*?<\/h1>')
         self.re_subtitle_tag = re.compile(r'<h[^12]>') # find <h3>, <h4> ...
         self.re_footnote = re.compile(r'\[\^(?P<fn>\d+)\]')
 
@@ -91,10 +92,10 @@ class MarkdownRenderer:
         except Exception as e:
             LOG.error(f"清理渲染html缓存失败: {e}")
 
-    def generate_html_from_md_path(self, markdown_path, action='mistune', title='', footer=None, css_inline_flag=False):
+    def generate_html_from_md_path(self, markdown_path, action='mistune', title='', footer=None, css_inline_flag=False, remove_h1=False):
         if action == 'mistune':
             # prefers default (sspai styled) css rather then github styled css
-            return self.generate_html(markdown_path, self.default_css, title, footer, css_inline_flag)
+            return self.generate_html(markdown_path, self.default_css, title, footer, css_inline_flag, remove_h1)
         
         html = self.generate_html_by_gh_md(markdown_path, action, footer, css_inline_flag)
         html = self._modify_github_html(html, title)
@@ -204,7 +205,7 @@ class MarkdownRenderer:
         footer_style = "font-size: 0.875rem; line-height: 1.25; text-align: center; padding: 20px 0;"
         return f"<footer style=\"{footer_style}\">\n<p style=\"margin: 0;\">{footer}</p>\n</footer>"
     
-    def generate_html(self, markdown_path, css_style, title='', footer=None, css_inline_flag=False):
+    def generate_html(self, markdown_path, css_style, title='', footer=None, css_inline_flag=False, remove_h1=False):
         if not os.path.exists(markdown_path):
             return ''
 
@@ -213,6 +214,10 @@ class MarkdownRenderer:
             md_content = f.read()
         
         html_content = mistune.html(md_content)
+
+        # remove h1
+        if remove_h1:
+            html_content = self.re_main_title.sub('', html_content, 1)
 
         # check footnotes
         if self.re_footnote.search(html_content):
