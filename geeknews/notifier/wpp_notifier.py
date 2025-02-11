@@ -19,7 +19,7 @@ class WppNotifier:
         self.api_client = WppClient(config)
         self.hackernews_manager = hackernews_manager
 
-    def publish_report(self, locale = 'zh_cn', date = GeeknewsDate.now(), thumb_media_id = None):
+    def post_draft(self, locale = 'zh_cn', date = GeeknewsDate.now(), thumb_media_id = None):
         # find report
         report_path = self.hackernews_manager.datapath_manager.get_report_file_path(locale=locale, date=date, ext='.wpp.html')
         if not report_path or not os.path.exists(report_path):
@@ -42,8 +42,12 @@ class WppNotifier:
         )
 
         draft_result = self.api_client.add_draft(article)
-        if 'media_id' in draft_result:
-            media_id = draft_result['media_id']
-            LOG.info(f'公众号发布成功: 草稿id - {media_id}')
+        draft_id = draft_result.get('media_id', '')
+        if draft_id:
+            report_dir = os.path.dirname(report_path)
+            draft_id_path = os.path.join(report_dir, 'wpp_draft_id.txt')
+            with open(draft_id_path, 'w') as f:
+                f.write(draft_id_path)
+            LOG.info(f'公众号发布成功: 草稿id - {draft_id}')
         else:
             LOG.error(f'公众号发布失败: {json.dumps(draft_result)}')

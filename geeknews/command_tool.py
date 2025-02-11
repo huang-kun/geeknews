@@ -51,7 +51,7 @@ class GeeknewsCommandHandler:
         wpp_parser = subparsers.add_parser('wpp', help='公众号接口测试')
         wpp_parser.add_argument('--get-drafts', action='store_true', help='批量获取草稿')
         wpp_parser.add_argument('--get-materials', action='store_true', help='获取素材列表')
-        wpp_parser.add_argument('--publish', action='store_true', help='发布公众号文章')
+        wpp_parser.add_argument('--post', action='store_true', help='发布公众号文章草稿')
         wpp_parser.set_defaults(func=self.handle_wechat_public_platform)
 
         return parser
@@ -196,8 +196,8 @@ class GeeknewsCommandHandler:
             print(wpp_client.batch_get_drafts())
         elif args.get_materials:
             print(wpp_client.batch_get_material())
-        elif args.publish:
-            print(wpp_notifier.publish_report())
+        elif args.post:
+            print(wpp_notifier.post_draft())
         else:
             print('Not supported yet.')
 
