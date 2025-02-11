@@ -84,7 +84,6 @@ img {
 }
 
 dl,
-ol,
 ul {
     margin-top: 12px;
     margin-bottom: 20px;
@@ -93,7 +92,10 @@ ul {
 }
 
 ol {
-    margin-left: 10px;
+    margin-top: 12px;
+    margin-bottom: 20px;
+    padding-left: 30px;
+    line-height: 1.8;
 }
 
 li {
@@ -241,7 +243,6 @@ ol#footnotes {
     counter-reset: footer-counter;
     /* list-style: none; */
     color: light-dark(#555, #d3d3d3);
-    padding-left: 1em;
 }
 
 ol#footnotes li {
