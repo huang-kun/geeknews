@@ -133,8 +133,10 @@ class WppBaseClient:
     def send(self, api: WppTokenBaseApi):
         result = WppRequest.send(api)
         if 'errcode' in result:
-            # access_token expired
-            if result['errcode'] == 42001:
+            errcode = result['errcode']
+            # 41001: access_token missing
+            # 42001: access_token expired
+            if errcode == 41001 or errcode == 42001:
                 if self.auto_refresh_token():
                     api.access_token = self.access_token
                     return self.send(api)
