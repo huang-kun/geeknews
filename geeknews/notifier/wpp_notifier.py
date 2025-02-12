@@ -47,7 +47,7 @@ class WppNotifier:
             report_dir = os.path.dirname(report_path)
             draft_id_path = os.path.join(report_dir, 'wpp_draft_id.txt')
             with open(draft_id_path, 'w') as f:
-                f.write(draft_id_path)
+                f.write(draft_id)
             LOG.info(f'公众号发布草稿成功: id - {draft_id}')
         else:
             LOG.error(f'公众号发布草稿失败: {json.dumps(draft_result)}')
