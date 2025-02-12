@@ -1,6 +1,7 @@
 import os, sys
 import argparse
 import json
+import mistune
 
 from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
@@ -156,6 +157,9 @@ class GeeknewsCommandHandler:
 
             with open(content_path) as f:
                 content = f.read()
+
+            if ext == '.md':
+                content = mistune.html(content)
             
             email_notifier.dry_run = args.dry_run
             email_notifier.notify(title=name, content=content, debug=args.test)
