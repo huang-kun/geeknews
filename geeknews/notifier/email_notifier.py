@@ -136,7 +136,8 @@ class GeeknewsEmailNotifier:
         target = self.tester if debug else ', '.join(self.beta_testers)
 
         if self.dry_run:
-            LOG.debug(f"模拟发送邮件 - from: {sender}, to: {target}, subject: {title}, content: {content[:10]}...")
+            target_log = target if debug else ', '.join(self.beta_testers[:2]) + f' ...({len(self.beta_testers)})'
+            LOG.debug(f"模拟发送邮件 - from: {sender}, to: {target_log}, subject: {title}, content: {content[:10]}...")
             return
 
         msg = MIMEMultipart()

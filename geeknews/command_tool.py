@@ -38,14 +38,17 @@ class GeeknewsCommandHandler:
         hackernews_parser.add_argument('--report', action='store_true', help='生成markdown报告')
         hackernews_parser.add_argument('--render', help='Markdown渲染为HTML')
         hackernews_parser.add_argument('--send', action='store_true', help='是否发送测试邮件')
+        hackernews_parser.add_argument('--test', action='store_true', help='TEST MODE')
         hackernews_parser.set_defaults(func=self.generate_hacker_news_daily_report)
 
         email_parser = subparsers.add_parser('email', help='邮箱管理')
-        email_parser.add_argument('--send', action='store_true', help='发送当天的html给所有beta用户')
+        email_parser.add_argument('--send', help='发送邮件')
         email_parser.add_argument('--list', action='store_true', help='列出所有beta用户的邮箱')
         email_parser.add_argument('--add', help='添加邮箱')
         email_parser.add_argument('--merge', help='从文件里批量添加邮箱列表')
         email_parser.add_argument('--remove', help='删除邮箱')
+        email_parser.add_argument('--test', action='store_true', help='TEST MODE')
+        email_parser.add_argument('--dry-run', action='store_true', help='DEBUG MODE')
         email_parser.set_defaults(func=self.handle_email)
 
         wpp_parser = subparsers.add_parser('wpp', help='公众号接口测试')
@@ -130,37 +133,32 @@ class GeeknewsCommandHandler:
             final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
 
             email_notifier.dry_run = False
-            email_notifier.notify(title=final_title, content=report_html, debug=True)
+            email_notifier.notify(title=final_title, content=report_html, debug=args.test)
 
             LOG.info(f"[终端任务执行完毕] {report_path}") 
 
     def handle_email(self, args):
-        hackernews_manager = self.geeknews_manager.hackernews_manager
         email_notifier = self.geeknews_manager.email_notifier
-        hackernews_dpm = self.geeknews_manager.hackernews_dpm
         
         email_path = email_notifier.get_email_tester_path()
         if not os.path.exists(email_path):
-            LOG.error(f"[终端任务]邮箱地址文件不存在: {email_path}")
+            LOG.error(f"[终端任务]邮箱地址不存在: {email_path}")
             return
 
-        locale = 'zh_cn'
-        date = GeeknewsDate.now()
-
         if args.send:
-            report_path = hackernews_dpm.get_report_file_path(locale=locale, date=date, ext='.html')
-            if not os.path.exists(report_path):
-                LOG.error("[终端任务]无法发送邮件, 未发现任何报告")
+            content_path = args.send
+            if not os.path.exists(content_path) or os.path.isdir(content_path):
+                LOG.error(f"[终端任务]无法发送邮件, 发送文件不存在{content_path}")
                 return
 
-            with open(report_path) as f:
-                report_html = f.read()
+            basename = os.path.basename(content_path)
+            name, ext = os.path.splitext(basename)
 
-            story_title = hackernews_manager.get_daily_top_story_title(locale, date)
-            final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
+            with open(content_path) as f:
+                content = f.read()
             
-            email_notifier.dry_run = False
-            email_notifier.notify(title=final_title, content=report_html, debug=False)
+            email_notifier.dry_run = args.dry_run
+            email_notifier.notify(title=name, content=content, debug=args.test)
         
         elif args.list:
             emails = email_notifier.beta_testers
