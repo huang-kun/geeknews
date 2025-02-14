@@ -92,10 +92,27 @@ class MarkdownRenderer:
         except Exception as e:
             LOG.error(f"清理渲染html缓存失败: {e}")
 
-    def generate_html_from_md_path(self, markdown_path, action='mistune', title='', footer=None, css_inline_flag=False, remove_h1=False):
+    def generate_html_from_md_path(
+            self, 
+            markdown_path, 
+            action='mistune', 
+            title='', 
+            footer=None, 
+            css_inline_flag=False, 
+            remove_h1=False, 
+            compact=False
+        ):
         if action == 'mistune':
             # prefers default (sspai styled) css rather then github styled css
-            return self.generate_html(markdown_path, self.default_css, title, footer, css_inline_flag, remove_h1)
+            return self.generate_html(
+                markdown_path, 
+                self.default_css, 
+                title, 
+                footer, 
+                css_inline_flag, 
+                remove_h1, 
+                compact
+            )
         
         html = self.generate_html_by_gh_md(markdown_path, action, footer, css_inline_flag)
         html = self._modify_github_html(html, title)
@@ -205,7 +222,16 @@ class MarkdownRenderer:
         footer_style = "font-size: 0.875rem; line-height: 1.25; text-align: center; padding: 20px 0;"
         return f"<footer style=\"{footer_style}\">\n<p style=\"margin: 0;\">{footer}</p>\n</footer>"
     
-    def generate_html(self, markdown_path, css_style, title='', footer=None, css_inline_flag=False, remove_h1=False):
+    def generate_html(
+            self, 
+            markdown_path, 
+            css_style, 
+            title='', 
+            footer=None, 
+            css_inline_flag=False, 
+            remove_h1=False, 
+            compact=False
+        ):
         if not os.path.exists(markdown_path):
             return ''
 
@@ -240,5 +266,9 @@ class MarkdownRenderer:
         # css inline
         if css_inline_flag:
             full_html = css_inline.inline(full_html)
+
+        #remove \n
+        if compact:
+            full_html = full_html.replace('\n', '')
 
         return full_html

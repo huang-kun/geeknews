@@ -47,6 +47,7 @@ class HackernewsReportWriter:
                 html_suffix_name='.wpp', 
                 css_inline=True,
                 remove_h1=False,
+                compact=True, # 微信公众号需要在网页里去除换行符，否则会在草稿编辑器里生成多余的br标签
             )
 
     def generate_report(
@@ -60,6 +61,7 @@ class HackernewsReportWriter:
             html_suffix_name='',
             css_inline=False,
             remove_h1=False,
+            compact=False,
         ):
         '''
         Combine today's summaries to daily report.
@@ -135,6 +137,7 @@ class HackernewsReportWriter:
             footer=html_footer,
             css_inline_flag=css_inline,
             remove_h1=remove_h1,
+            compact=compact,
         )
         self.markdown_renderer.clean_all_caches()
 

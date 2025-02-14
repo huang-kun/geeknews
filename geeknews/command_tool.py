@@ -96,7 +96,10 @@ class GeeknewsCommandHandler:
             
             md_basename = os.path.basename(markdown_path)
             md_name, _ = os.path.splitext(md_basename)
+
+            # check if markdown is for wechat public platform
             md_name_suffix = md_name.split('.')[-1] if '.' in md_name else ''
+            is_wpp = md_name_suffix == 'wpp'
             
             renderer = MarkdownRenderer()
             html = renderer.generate_html_from_md_path(
@@ -104,7 +107,9 @@ class GeeknewsCommandHandler:
                 action='mistune',
                 title='Geeknews',
                 footer='2025. Geeknews',
-                css_inline_flag=bool(md_name_suffix),
+                css_inline_flag=is_wpp,
+                remove_h1=False,
+                compact=is_wpp,
             )
             renderer.clean_all_caches()
 
