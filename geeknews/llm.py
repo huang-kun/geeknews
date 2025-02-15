@@ -5,13 +5,16 @@ from geeknews.utils.logger import LOG
 
 class LLM:
 
-    def __init__(self):
+    def __init__(self, api_key=None, model='gpt-4o-mini'):
+        self.api_key = api_key
+        self.model = model
         self.client = self.create_openai_client()
-        self.model = 'gpt-4o-mini'
 
-    @staticmethod
-    def create_openai_client():
-        api_key = os.environ["OPENAI_API_KEY"]
+    def create_openai_client(self):
+        api_key = self.api_key
+        if not api_key and 'OPENAI_API_KEY' in os.environ:
+            api_key = os.environ["OPENAI_API_KEY"]
+
         if "OPENAI_BASE_URL" in os.environ:
             base_url = os.environ['OPENAI_BASE_URL']
             return OpenAI(
