@@ -40,6 +40,7 @@ class GeeknewsCommandHandler:
         hackernews_parser = subparsers.add_parser('hackernews', help='Hacker News top stories')
         hackernews_parser.add_argument('--run', action='store_true', help='是否获取每日热点并生成总结报告')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
+        hackernews_parser.add_argument('--summary', help='文章总结')
         hackernews_parser.add_argument('--report', action='store_true', help='生成markdown报告')
         hackernews_parser.add_argument('--render', help='Markdown渲染为HTML')
         hackernews_parser.add_argument('--send', action='store_true', help='是否发送测试邮件')
@@ -130,6 +131,10 @@ class GeeknewsCommandHandler:
             stories.sort(key=lambda x: x['score'], reverse=True)
             for index, story in enumerate(stories):
                 self.debug_log_story(story, index)
+
+        elif args.summary:
+            article_path = args.summary
+            hackernews_manager.summary_writer.generate_article_summary(article_path, override=True)
         
         elif args.report:
             hackernews_manager.report_writer.generate_report('topstories', locale, date, override)
