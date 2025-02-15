@@ -1,10 +1,16 @@
 import os
 import requests
 import json
+from datetime import datetime
 from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager
 from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
+
+
+HN_MAX_DOWNLOADS = 100
+HN_RECENT_HOURS = 24
+
 
 # https://github.com/HackerNews/API
 
@@ -157,6 +163,7 @@ class HackernewsClient:
 
         LOG.debug(f'开始请求top stories')
         story_ids = self.fetch_top_story_ids()
+        story_ids = self.custom_rank(story_ids, date)
         LOG.debug(f'已请求top stories id数量共{len(story_ids)}个, 限制下载{story_limit}个')
 
         sub_ids = story_ids[:story_limit]
@@ -235,6 +242,37 @@ class HackernewsClient:
     @staticmethod
     def get_default_story_url(story_id):
         return f'https://news.ycombinator.com/item?id={story_id}'
+    
+    def custom_rank(self, story_ids, date=GeeknewsDate.now()):
+        # get first batch ids and fetch details, filter in recent hours and sort by score
+        max_downloads = HN_MAX_DOWNLOADS
+        recent_hours = HN_RECENT_HOURS
+
+        if max_downloads == 0 or recent_hours == 0:
+            return story_ids
+
+        stories = []
+        story_ids = story_ids[:max_downloads]
+        for id in story_ids:
+            story = self.get_local_item(id, date)
+            if not story:
+                story = self.fetch_item(id)
+                self.save_item(id, story, date)
+            stories.append(story)
+        
+        stories = list(filter(lambda x: self.is_recent_story(x, recent_hours), stories))
+        stories.sort(key=lambda x: x.get('score', 0), reverse=True)
+        return list(map(lambda x: x.get('id', 0), stories))
+
+    def is_recent_story(self, story: dict, in_hours: int):
+        timestamp = story.get('time', 0)
+        return self.is_recent(timestamp, in_hours)
+
+    @staticmethod
+    def is_recent(timestamp: int, in_hours: int):
+        date = datetime.fromtimestamp(timestamp)
+        time_diff = datetime.now() - date
+        return int(time_diff.total_seconds()) // (3600 * in_hours) == 0
 
 
 def test_hackernews_client():

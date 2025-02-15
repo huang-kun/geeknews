@@ -15,6 +15,7 @@ from geeknews.configparser import GeeknewsConfigParser
 from geeknews.config import GeeknewsEmailConfig, GeeknewsWechatPPConfig
 
 from geeknews.hackernews.config import HackernewsConfig
+from geeknews.hackernews.api_client import HackernewsClient, HN_MAX_DOWNLOADS, HN_RECENT_HOURS
 from geeknews.hackernews.data_path import HackernewsDataPathManager
 from geeknews.hackernews.manager import HackernewsManager
 
@@ -64,11 +65,6 @@ class GeeknewsCommandHandler:
 
         return parser
     
-    def is_recent(self, timestamp: int, in_hours: int = 12):
-        date = datetime.fromtimestamp(timestamp)
-        time_diff = datetime.now() - date
-        return int(time_diff.total_seconds()) // (3600 * in_hours) == 0
-    
     def debug_log_story(self, story: dict, index: int):
         id = story.get('id', 0)
         title = story.get('title', '')
@@ -76,7 +72,7 @@ class GeeknewsCommandHandler:
         time = story.get('time', 0)
 
         date = datetime.fromtimestamp(time)
-        is_recent = self.is_recent(time)
+        is_recent = HackernewsClient.is_recent(time, HN_RECENT_HOURS)
 
         recent_text = "RECENT" if is_recent else ""
         date_text = date.strftime("%Y-%m-%d %H:%M")
@@ -107,7 +103,9 @@ class GeeknewsCommandHandler:
             story_dir = hackernews_dpm.get_story_date_dir(date)
             story_ids = hackernews_manager.api_client.fetch_top_story_ids()
             
-            limit = 100
+            limit = HN_MAX_DOWNLOADS
+            in_hours = HN_RECENT_HOURS
+
             sub_ids = story_ids[:limit]
             
             print(f"Get {len(story_ids)} stories, limited in {limit}.")
@@ -124,11 +122,11 @@ class GeeknewsCommandHandler:
                         json.dump(story, f, ensure_ascii=False)
                 
                 stories.append(story)
-                self.debug_log_story(story, index)
+                # self.debug_log_story(story, index)
             
             print("==== fitler recent and sort by score ====")
 
-            stories = list(filter(lambda x: self.is_recent(x.get('time', 0)), stories))
+            stories = list(filter(lambda x: HackernewsClient.is_recent(x.get('time', 0), in_hours), stories))
             stories.sort(key=lambda x: x['score'], reverse=True)
             for index, story in enumerate(stories):
                 self.debug_log_story(story, index)
