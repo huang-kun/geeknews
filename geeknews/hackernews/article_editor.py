@@ -40,6 +40,41 @@ LLM:
 
 """
 
+
+def count_words(text):
+    return len(text.split())
+
+
+def reduce_text_by_words(text, word_limit, truncated=False, placeholder='...(content omitted)...'):
+    '''Reduce the text by limiting word count.'''
+    word_count = count_words(text)
+    extra_count = word_count - word_limit
+    if extra_count <= 0:
+        
+        # insert placeholder in the middle if needed
+        if truncated and placeholder:
+            if '\n' in text and not '\n' in placeholder:
+                placeholder = '\n\n' + placeholder + '\n\n'
+            half_length = len(text) // 2
+            return text[:half_length] + placeholder + text[half_length:]
+        
+        return text
+    
+    total_length = len(text)
+    word_length = total_length // word_count
+    extra_length = word_length * extra_count
+
+    start_index = (total_length - extra_length) // 2
+    end_index = start_index + extra_length
+    
+    # truncate text from middle section
+    start_part = text[:start_index]
+    end_part = text[end_index:]
+    trunc_text = start_part + '..' + end_part
+
+    return reduce_text_by_words(trunc_text, word_limit=word_limit, truncated=True, placeholder=placeholder)
+
+
 class HackernewsSimpleStory:
 
     def __init__(self, id, title, url, text=None, comments=[], score=0, article=False):
@@ -157,26 +192,32 @@ class HackernewsArticleEditor:
         
         title = self.generate_article_title(story.title)
         comment = self.generate_article_comment(story.comments)
-
-        text_total_limit = self.config.article_text_max_length
-        text_head_limit = self.config.article_text_head_length
-
-        text_length = len(text)
-        if text_length > text_total_limit:
-            text_tail_limit = text_total_limit - text_head_limit
-            head = text[:text_head_limit]
-            tail = text[-text_tail_limit:]
-            text = head + '\n\n...(content omitted)...\n\n' + tail
-
+        final_text = reduce_text_by_words(text, word_limit=self.config.max_word_count)
+        
+        if len(final_text) < len(text):
+            LOG.info(f"{story.id} 文章字数有裁剪: 从{count_words(text)}减到{count_words(final_text)}")
+        else:
+            LOG.info(f"{story.id} 文章字数: {count_words(final_text)}")
+        
         lines = []
         lines.append(title)
-        lines.append(text)
+        lines.append(final_text)
         if comment:
             lines.append('')
             lines.append(comment)
         lines.append('')
         
         return '\n'.join(lines)
+    
+    def truncate_text_by_length(self, text, text_total_limit, text_head_limit):
+        text_length = len(text)
+        if text_length > text_total_limit:
+            text_tail_limit = text_total_limit - text_head_limit
+            head = text[:text_head_limit]
+            tail = text[-text_tail_limit:]
+            text = head + '\n\n...(content omitted)...\n\n' + tail
+        
+        return text
 
     def generate_article_title(self, title):
         return f"# {title}"

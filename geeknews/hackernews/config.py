@@ -13,8 +13,7 @@ class HackernewsConfig:
     daily_article_max_count: int
     each_story_max_comment_count: int
 
-    article_text_max_length: int
-    article_text_head_length: int
+    max_word_count: int
 
     update_freq_days: int
     update_exec_time: str
@@ -31,8 +30,7 @@ class HackernewsConfig:
         cls.daily_article_max_count = configparser.get_integer(cls.section, 'daily_article_max_count')
         cls.each_story_max_comment_count = configparser.get_integer(cls.section, 'each_story_max_comment_count')
 
-        cls.article_text_max_length = configparser.get_integer(cls.section, 'article_text_max_length')
-        cls.article_text_head_length = configparser.get_integer(cls.section, 'article_text_head_length')
+        cls.max_word_count = configparser.get_integer(cls.section, 'max_word_count')
 
         cls.update_freq_days = configparser.get_integer(cls.section, 'update_freq_days')
         cls.update_exec_time = configparser.get(cls.section, 'update_exec_time')
