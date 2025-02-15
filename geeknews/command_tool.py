@@ -3,6 +3,8 @@ import argparse
 import json
 import mistune
 
+from datetime import datetime, timedelta
+
 from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
 from geeknews.utils.md2html import MarkdownRenderer
@@ -35,6 +37,7 @@ class GeeknewsCommandHandler:
 
         # hacker news
         hackernews_parser = subparsers.add_parser('hackernews', help='Hacker News top stories')
+        hackernews_parser.add_argument('--run', action='store_true', help='是否获取每日热点并生成总结报告')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
         hackernews_parser.add_argument('--report', action='store_true', help='生成markdown报告')
         hackernews_parser.add_argument('--render', help='Markdown渲染为HTML')
@@ -60,6 +63,24 @@ class GeeknewsCommandHandler:
         wpp_parser.set_defaults(func=self.handle_wechat_public_platform)
 
         return parser
+    
+    def is_recent(self, timestamp: int, in_hours: int = 12):
+        date = datetime.fromtimestamp(timestamp)
+        time_diff = datetime.now() - date
+        return int(time_diff.total_seconds()) // (3600 * in_hours) == 0
+    
+    def debug_log_story(self, story: dict, index: int):
+        id = story.get('id', 0)
+        title = story.get('title', '')
+        score = story.get('score', 0)
+        time = story.get('time', 0)
+
+        date = datetime.fromtimestamp(time)
+        is_recent = self.is_recent(time)
+
+        recent_text = "RECENT" if is_recent else ""
+        date_text = date.strftime("%Y-%m-%d %H:%M")
+        print(f"{index+1}. [{id}] {date_text} score: {score} {recent_text} {title}")
 
     def generate_hacker_news_daily_report(self, args):
         hackernews_manager = self.geeknews_manager.hackernews_manager
@@ -72,14 +93,45 @@ class GeeknewsCommandHandler:
         
         report_path = hackernews_dpm.get_report_file_path(locale=locale, date=date, ext='.html')
 
-        if args.fetch:
-            LOG.info(f'[开始执行终端任务]Hacker News每日热点: {date}')
+        if args.run:
+            LOG.debug(f'[开始执行终端任务]Hacker News每日热点: {date}')
             if override or (not override and not os.path.exists(report_path)):
                 hackernews_manager.generate_daily_report(locale=locale, date=date, override=override)
             if os.path.exists(report_path):
-                LOG.info(f"[终端任务执行完毕] {report_path}") 
+                LOG.debug(f"[终端任务执行完毕] {report_path}") 
             else:
                 LOG.error("[终端任务]汇总结束, 未发现任何报告")
+
+        elif args.fetch:
+            override = False
+            story_dir = hackernews_dpm.get_story_date_dir(date)
+            story_ids = hackernews_manager.api_client.fetch_top_story_ids()
+            
+            limit = 100
+            sub_ids = story_ids[:limit]
+            
+            print(f"Get {len(story_ids)} stories, limited in {limit}.")
+            
+            stories = []
+            for index, id in enumerate(sub_ids):
+                story_path = os.path.join(story_dir, f'{id}.json')
+                if os.path.exists(story_path) and not override:
+                    with open(story_path) as f:
+                        story = json.load(f)
+                else:
+                    story = hackernews_manager.api_client.fetch_item(id)
+                    with open(story_path, 'w') as f:
+                        json.dump(story, f, ensure_ascii=False)
+                
+                stories.append(story)
+                self.debug_log_story(story, index)
+            
+            print("==== fitler recent and sort by score ====")
+
+            stories = list(filter(lambda x: self.is_recent(x.get('time', 0)), stories))
+            stories.sort(key=lambda x: x['score'], reverse=True)
+            for index, story in enumerate(stories):
+                self.debug_log_story(story, index)
         
         elif args.report:
             hackernews_manager.report_writer.generate_report('topstories', locale, date, override)

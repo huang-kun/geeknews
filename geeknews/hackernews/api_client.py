@@ -54,7 +54,13 @@ class HackernewsClient:
         except Exception as e:
             LOG.error(str(e))
             return empty_data
-        
+    
+    def fetch_top_story_ids(self):
+        return self.http_get(self.api.top_stories_url(), empty_data=[])
+    
+    def fetch_new_story_ids(self):
+        return self.http_get(self.api.new_stories_url(), empty_data=[])
+    
     def fetch_item(self, id):
         url = self.api.get_item_url(id)
         return self.http_get(url, empty_data={})
@@ -150,7 +156,7 @@ class HackernewsClient:
         article_limit = self.config.daily_article_max_count
 
         LOG.debug(f'开始请求top stories')
-        story_ids = self.http_get(self.api.top_stories_url(), empty_data=[])
+        story_ids = self.fetch_top_story_ids()
         LOG.debug(f'已请求top stories id数量共{len(story_ids)}个, 限制下载{story_limit}个')
 
         sub_ids = story_ids[:story_limit]
@@ -225,7 +231,7 @@ class HackernewsClient:
 
     def get_story_path(self, id, date=GeeknewsDate.now()):
         return self.datapath_manager.get_story_file_path(id, date)
-    
+
     @staticmethod
     def get_default_story_url(story_id):
         return f'https://news.ycombinator.com/item?id={story_id}'
