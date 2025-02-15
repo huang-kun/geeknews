@@ -90,6 +90,11 @@ class LLM:
 def test_llm():
     llm = LLM()
     msg = llm.get_assistant_message(
-        system_prompt='You are a help assistant',
-        user_content='Hello',
+        system_prompt='You are an excellent prompting engineer',
+        user_content='I would like to generate a prompt for the editors of a scientific article: your readers are mostly ordinary people who care about cutting-edge information, please use a user-friendly style to interpret the article, and you can use your personal style while preserving the facts, and avoid being too rigid.',
     )
+    print(msg)
+
+
+if __name__ == '__main__':
+    test_llm()
