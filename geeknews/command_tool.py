@@ -188,7 +188,7 @@ class GeeknewsCommandHandler:
                 
                 word_count = count_words(content)
                 if word_count < word_limit:
-                    short_articles.append((title, content))
+                    short_articles.append((title, content, file_path, word_count))
 
                 mark_as_short = "[SHORT] " if word_count < word_limit else ""
                 if mark_as_short:
@@ -203,7 +203,7 @@ class GeeknewsCommandHandler:
             # validate
             if not debug and short_articles:
                 print("=======")
-                for title, content in short_articles:
+                for title, content, file_path, word_count in short_articles:
                     score = hackernews_manager.article_editor.check_article_relevance_score(title, content)
                     failed = score < hackernews_manager.config.validation_score
                     invalid_mark = "[FAILED]" if failed else ""
