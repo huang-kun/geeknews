@@ -189,7 +189,10 @@ class HackernewsArticleEditor:
 
         LOG.debug(f'编辑结束: {self.datapath_manager.get_article_date_dir(date)}')
     
-    def generate_article(self, story):        
+    def generate_article(self, story):
+        if not self.support_story(story):
+            return ''
+
         text = self.generate_article_text(story)
         if not text:
             return ''
@@ -292,10 +295,6 @@ class HackernewsArticleEditor:
     
     def read_text_from_url(self, url):
         if not url:
-            LOG.error(f'无法读取链接, 空url')
-            return ''
-        if url.endswith('.pdf'):
-            LOG.error(f'无法读取链接, 暂不支持pdf')
             return ''
         
         LOG.debug(f'正在读取链接: {url}')
@@ -313,6 +312,26 @@ class HackernewsArticleEditor:
         except Exception as e:
             LOG.error(str(e))
             return ''
+    
+    def support_story(self, story: HackernewsSimpleStory):
+        id = story.id
+        url = story.url
+        title = story.title.strip()
+
+        if not url:
+            LOG.error(f'{id} 无法读取链接, 空url')
+            return False
+        if url.endswith('.pdf'):
+            LOG.error(f'{id} 暂不支持pdf')
+            return False
+        if title.startswith('Ask HN:'):
+            LOG.error(f'{id} 暂不支持Ask HN')
+            return False
+        if title.endswith('[video]'):
+            LOG.error(f'{id} 暂不支持video')
+            return False
+        
+        return True
 
     def download_article_content_by_story_path(self, story_path):
         '''For debugging!'''
