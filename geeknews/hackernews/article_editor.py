@@ -4,6 +4,8 @@ import html
 import re
 import requests
 import html2text
+
+from geeknews.llm import LLM
 from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
 from geeknews.hackernews.config import HackernewsConfig
@@ -97,7 +99,8 @@ class HackernewsSimpleComment:
 class HackernewsArticleEditor:
     '''Read link, generate article and comments from stories.json'''
 
-    def __init__(self, config: HackernewsConfig, datapath_manager: HackernewsDataPathManager):
+    def __init__(self, llm: LLM, config: HackernewsConfig, datapath_manager: HackernewsDataPathManager):
+        self.llm = llm
         self.config = config
         self.datapath_manager = datapath_manager
         self.link_re = re.compile(r'<a href=.*?\/a>')
@@ -190,6 +193,19 @@ class HackernewsArticleEditor:
         if not text:
             return ''
         
+        # check relevance of title and web content, maybe is empty web page.
+        if text and not story.text:
+            word_count = count_words(text)
+            if word_count == 0:
+                return ''
+            if word_count < 500 and self.llm:
+                relevance_score = self.check_article_relevance_score(story.title, text)
+                if relevance_score > 60:
+                    LOG.info(f"{story.id} 文章内容相关性评分: {relevance_score}")
+                else:
+                    LOG.error(f"{story.id} 文章内容不相关: {relevance_score}")
+                    return ''
+        
         title = self.generate_article_title(story.title)
         comment = self.generate_article_comment(story.comments)
         final_text = reduce_text_by_words(text, word_limit=self.config.max_word_count)
@@ -218,6 +234,16 @@ class HackernewsArticleEditor:
             text = head + '\n\n...(content omitted)...\n\n' + tail
         
         return text
+    
+    def check_article_relevance_score(self, title, content):
+        '''Check title and content relevance and return a score of 0-100.'''
+        formatted_text = f"<title>{title}</title>\n<content>\n{content}\n</content>"
+        result = self.llm.get_assistant_message(
+            system_prompt=LLM.get_system_prompt('check_article_relevance', subdir='hackernews'),
+            user_content=formatted_text,
+        )
+        score = int(result)
+        return score
 
     def generate_article_title(self, title):
         return f"# {title}"
@@ -281,6 +307,6 @@ class HackernewsArticleEditor:
 def test_hackernews_article_editor():
     config = HackernewsConfig.get_from_parser()
     dpm = HackernewsDataPathManager(config)    
-    editor = HackernewsArticleEditor(config, dpm)
+    editor = HackernewsArticleEditor(None, config, dpm)
     editor.generate_topstories_articles()
     
