@@ -204,6 +204,8 @@ class GeeknewsCommandHandler:
             if not debug and short_articles:
                 print("=======")
                 for title, content, file_path, word_count in short_articles:
+                    if title.startswith("Show HN:") or title.startswith("Ask HN:"):
+                        continue
                     score = hackernews_manager.article_editor.check_article_relevance_score(title, content)
                     failed = score < hackernews_manager.config.validation_score
                     invalid_mark = "[FAILED]" if failed else ""
