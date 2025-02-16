@@ -15,6 +15,7 @@ class HackernewsConfig:
 
     max_word_count: int
     validate_word_count: int
+    validation_score: int
 
     update_freq_days: int
     update_exec_time: str
@@ -33,6 +34,7 @@ class HackernewsConfig:
 
         cls.max_word_count = configparser.get_integer(cls.section, 'max_word_count')
         cls.validate_word_count = configparser.get_integer(cls.section, 'validate_word_count')
+        cls.validation_score = configparser.get_integer(cls.section, 'validation_score')
 
         cls.update_freq_days = configparser.get_integer(cls.section, 'update_freq_days')
         cls.update_exec_time = configparser.get(cls.section, 'update_exec_time')

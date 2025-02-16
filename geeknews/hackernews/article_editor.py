@@ -200,7 +200,7 @@ class HackernewsArticleEditor:
                 return ''
             if word_count < self.config.validate_word_count and self.llm:
                 relevance_score = self.check_article_relevance_score(story.title, text)
-                if relevance_score > 60:
+                if relevance_score > self.config.validation_score:
                     LOG.info(f"{story.id} 文章内容相关性评分: {relevance_score}")
                 else:
                     LOG.error(f"{story.id} 文章内容不相关: {relevance_score}")
