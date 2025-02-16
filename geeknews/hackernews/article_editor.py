@@ -315,6 +315,10 @@ class HackernewsArticleEditor:
             return ''
     
     def support_story(self, story: HackernewsSimpleStory):
+        # if has text and not job hiring, then ok
+        if story.text and not self.job_title_re.search(story.title):
+            return True
+
         id = story.id
         url = story.url
         title = story.title.strip()
