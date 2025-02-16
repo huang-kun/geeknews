@@ -104,6 +104,7 @@ class HackernewsArticleEditor:
         self.config = config
         self.datapath_manager = datapath_manager
         self.link_re = re.compile(r'<a href=.*?\/a>')
+        self.score_re = re.compile(r'-?\d+')
     
     def parse_stories(self, stories):
         results = []
@@ -242,8 +243,20 @@ class HackernewsArticleEditor:
             system_prompt=LLM.get_system_prompt('check_article_relevance', subdir='hackernews'),
             user_content=formatted_text,
         )
-        score = int(result)
-        return score
+        if not result:
+            return 0
+        
+        score_match = self.score_re.search(result)
+        if not score_match:
+            return 0
+        
+        score_text = score_match.group()
+        try:
+            score = int(score_text)
+            return score
+        except Exception as e:
+            LOG.error(f"文章内容相关性评分解析失败: {e}")
+            return 0
 
     def generate_article_title(self, title):
         return f"# {title}"
