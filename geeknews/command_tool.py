@@ -83,7 +83,9 @@ class GeeknewsCommandHandler:
 
         recent_text = "RECENT" if is_recent else ""
         date_text = date.strftime("%Y-%m-%d %H:%M")
-        print(f"{index+1}. [{id}] {date_text} score: {score} {recent_text} {title}")
+
+        if is_recent:
+            print(f"{index+1}. [{id}] {date_text} score: {score} {recent_text} {title}")
 
     def generate_hacker_news_daily_report(self, args):
         hackernews_manager = self.geeknews_manager.hackernews_manager
@@ -111,7 +113,6 @@ class GeeknewsCommandHandler:
             story_ids = hackernews_manager.api_client.fetch_top_story_ids()
             
             limit = HN_MAX_DOWNLOADS
-            in_hours = HN_RECENT_HOURS
 
             sub_ids = story_ids[:limit]
             
@@ -133,8 +134,7 @@ class GeeknewsCommandHandler:
             
             print("==== fitler recent and sort by score ====")
 
-            stories = list(filter(lambda x: HackernewsClient.is_recent(x.get('time', 0), in_hours), stories))
-            stories.sort(key=lambda x: x['score'], reverse=True)
+            stories = hackernews_manager.api_client.custom_rank_stories(stories)
             for index, story in enumerate(stories):
                 self.debug_log_story(story, index)
 
