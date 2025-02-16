@@ -3,7 +3,7 @@ import json
 import html
 import re
 import requests
-import html2text
+from bs4 import BeautifulSoup
 
 from geeknews.llm import LLM
 from geeknews.utils.logger import LOG
@@ -303,12 +303,10 @@ class HackernewsArticleEditor:
             response = requests.get(url)
             response.raise_for_status()
 
-            if "text/html" in response.headers.get("Content-Type", "") or response.text.startswith("<!DOCTYPE html>"):
-                text_maker = html2text.HTML2Text()
-                text_maker.ignore_links = True
-                text_maker.bypass_tables = False
-                text = text_maker.handle(response.text)
-                return text.strip()
+            if "text/html" in response.headers.get("Content-Type", "") or response.text.lstrip().startswith("<!DOCTYPE html>"):
+                soup = BeautifulSoup(response.text, 'html.parser')
+                text = soup.get_text(separator='\n\n', strip=True)
+                return text
             else:
                 LOG.error(f'从网页中提取文本失败: {url}')
                 return ''

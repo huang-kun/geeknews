@@ -2,6 +2,7 @@ annotated-types==0.7.0
 anyio==4.8.0
 asgiref==3.8.1
 beautifulsoup4==4.12.3
+bs4==0.0.2
 certifi==2024.12.14
 charset-normalizer==3.4.1
 css-inline==0.14.6
