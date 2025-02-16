@@ -7,9 +7,9 @@ from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager
 
 LOCALIZED_TITLE = {
-    'zh_cn': '极客号外',
-    'en_us': 'Geeknews',
-    'en': 'Geeknews',
+    'zh_cn': '极客浣熊',
+    'en_us': 'Geek Raccoon',
+    'en': 'Geek Raccoon',
 }
 
 class HackernewsReportWriter:
