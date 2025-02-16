@@ -198,7 +198,7 @@ class HackernewsArticleEditor:
             word_count = count_words(text)
             if word_count == 0:
                 return ''
-            if word_count < 500 and self.llm:
+            if word_count < self.config.validate_word_count and self.llm:
                 relevance_score = self.check_article_relevance_score(story.title, text)
                 if relevance_score > 60:
                     LOG.info(f"{story.id} 文章内容相关性评分: {relevance_score}")

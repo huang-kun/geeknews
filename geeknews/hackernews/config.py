@@ -14,6 +14,7 @@ class HackernewsConfig:
     each_story_max_comment_count: int
 
     max_word_count: int
+    validate_word_count: int
 
     update_freq_days: int
     update_exec_time: str
@@ -31,6 +32,7 @@ class HackernewsConfig:
         cls.each_story_max_comment_count = configparser.get_integer(cls.section, 'each_story_max_comment_count')
 
         cls.max_word_count = configparser.get_integer(cls.section, 'max_word_count')
+        cls.validate_word_count = configparser.get_integer(cls.section, 'validate_word_count')
 
         cls.update_freq_days = configparser.get_integer(cls.section, 'update_freq_days')
         cls.update_exec_time = configparser.get(cls.section, 'update_exec_time')
