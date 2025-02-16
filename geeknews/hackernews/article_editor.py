@@ -105,6 +105,7 @@ class HackernewsArticleEditor:
         self.datapath_manager = datapath_manager
         self.link_re = re.compile(r'<a href=.*?\/a>')
         self.score_re = re.compile(r'-?\d+')
+        self.job_title_re = re.compile(r'\(YC\s\w\d+\)\s\w+\s[Hh]iring')
     
     def parse_stories(self, stories):
         results = []
@@ -321,7 +322,7 @@ class HackernewsArticleEditor:
         if not url:
             LOG.error(f'{id} 无法读取链接, 空url')
             return False
-        if url.endswith('.pdf'):
+        if url.endswith('.pdf') or url.startswith('https://arxiv.org/pdf/'):
             LOG.error(f'{id} 暂不支持pdf')
             return False
         if title.startswith('Ask HN:'):
@@ -329,6 +330,9 @@ class HackernewsArticleEditor:
             return False
         if title.endswith('[video]'):
             LOG.error(f'{id} 暂不支持video')
+            return False
+        if self.job_title_re.search(title):
+            LOG.error(f'{id} 暂不支持招聘信息')
             return False
         
         return True
