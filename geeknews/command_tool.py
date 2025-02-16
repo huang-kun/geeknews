@@ -40,6 +40,7 @@ class GeeknewsCommandHandler:
         hackernews_parser = subparsers.add_parser('hackernews', help='Hacker News top stories')
         hackernews_parser.add_argument('--run', action='store_true', help='是否获取每日热点并生成总结报告')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
+        hackernews_parser.add_argument('--read', help='读取文章内容')
         hackernews_parser.add_argument('--summary', help='文章总结')
         hackernews_parser.add_argument('--report', action='store_true', help='生成markdown报告')
         hackernews_parser.add_argument('--render', help='Markdown渲染为HTML')
@@ -131,6 +132,18 @@ class GeeknewsCommandHandler:
             stories.sort(key=lambda x: x['score'], reverse=True)
             for index, story in enumerate(stories):
                 self.debug_log_story(story, index)
+
+        elif args.read:
+            story_path = args.read
+            content = hackernews_manager.article_editor.download_article_content_by_story_path(story_path)
+            if content:
+                story_dir = os.path.dirname(story_path)
+                story_name = os.path.basename(story_path)
+                temp_name, _ = os.path.splitext(story_name)
+                temp_path = os.path.join(story_dir, f'temp_article_{temp_name}.md')
+                with open(temp_path, 'w') as f:
+                    f.write(content)
+                print(f"文章下载完成, 临时路径: {temp_path}")
 
         elif args.summary:
             article_path = args.summary

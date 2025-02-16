@@ -303,6 +303,16 @@ class HackernewsArticleEditor:
             LOG.error(str(e))
             return ''
 
+    def download_article_content_by_story_path(self, story_path):
+        '''For debugging!'''
+        if not os.path.exists(story_path):
+            return ''
+        
+        with open(story_path) as f:
+            story = json.load(f)
+        
+        stories = self.parse_stories([story])
+        return self.generate_article(stories[0])
 
 def test_hackernews_article_editor():
     config = HackernewsConfig.get_from_parser()
