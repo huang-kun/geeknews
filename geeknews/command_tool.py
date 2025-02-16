@@ -43,12 +43,13 @@ class GeeknewsCommandHandler:
         hackernews_parser.add_argument('--run', action='store_true', help='是否获取每日热点并生成总结报告')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
         hackernews_parser.add_argument('--read', help='读取文章内容')
-        hackernews_parser.add_argument('--count-words', action='store_true', help='读取文章字数')
+        hackernews_parser.add_argument('--validate', action='store_true', help='检查短文章内容的相关性')
         hackernews_parser.add_argument('--summary', help='文章总结')
         hackernews_parser.add_argument('--report', action='store_true', help='生成markdown报告')
         hackernews_parser.add_argument('--render', help='Markdown渲染为HTML')
         hackernews_parser.add_argument('--send', action='store_true', help='是否发送测试邮件')
         hackernews_parser.add_argument('--test', action='store_true', help='TEST MODE')
+        hackernews_parser.add_argument('--debug', action='store_true', help='DEBUG MODE')
         hackernews_parser.set_defaults(func=self.generate_hacker_news_daily_report)
 
         email_parser = subparsers.add_parser('email', help='邮箱管理')
@@ -148,36 +149,65 @@ class GeeknewsCommandHandler:
                     f.write(content)
                 print(f"文章下载完成, 临时路径: {temp_path}")
 
-        elif args.count_words:
+        elif args.validate:
+            debug = args.debug
             word_limit = hackernews_manager.config.validate_word_count
             only_log_short = True
+
+            short_articles = []
 
             article_dir = hackernews_dpm.config.article_dir
             article_dir_path = Path(article_dir)
             for article_path in article_dir_path.rglob('*.md'):
                 file_path = str(article_path)
                 with open(file_path) as f:
-                    content = f.read()
+                    text = f.read()
                 
                 # remove comments from article
-                comment_index = content.find('USER_COMMENTS:')
+                comment_index = text.find('USER_COMMENTS:')
                 if comment_index != -1:
-                    content = content[:comment_index]
+                    text = text[:comment_index]
                 else:
-                    comment_index = content.find('**Reader Comments**:')
+                    comment_index = text.find('**Reader Comments**:')
                     if comment_index != -1:
-                        content = content[:comment_index]
+                        text = text[:comment_index]
+                
+                # parse title and content
+                title, content = '', ''
+                if '\n' in text:
+                    components = text.split('\n')
+                    
+                    title = components[0]
+                    if title.startswith('# '):
+                        title = title[2:]
+
+                    content = '\n'.join(components[1:])
+                else:
+                    LOG.error(f"无法解析文章标题: {file_path}")
+                    continue
                 
                 word_count = count_words(content)
+                if word_count < word_limit:
+                    short_articles.append((title, content))
+
                 mark_as_short = "[SHORT] " if word_count < word_limit else ""
                 if mark_as_short:
-                    if '\n' in content:
-                        mark_as_short += content.split('\n')[0]
+                    if '\n' in text:
+                        mark_as_short += text.split('\n')[0]
                     else:
-                        mark_as_short += content[:50]
+                        mark_as_short += text[:50]
                 
                 if not only_log_short or mark_as_short:
                     print(f"{file_path} [{word_count}] {mark_as_short}")
+            
+            # validate
+            if not debug and short_articles:
+                print("=======")
+                for title, content in short_articles:
+                    score = hackernews_manager.article_editor.check_article_relevance_score(title, content)
+                    failed = score < hackernews_manager.config.validation_score
+                    invalid_mark = "[FAILED]" if failed else ""
+                    print(f"{file_path} [{word_count}] 关联性评价得分: {score}, {invalid_mark} {title[:50]}")
 
         elif args.summary:
             article_path = args.summary
