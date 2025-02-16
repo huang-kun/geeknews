@@ -19,6 +19,7 @@ from geeknews.hackernews.report_writer import HackernewsReportWriter
 class HackernewsManager:
 
     def __init__(self, llm: LLM, config: HackernewsConfig, dpm: HackernewsDataPathManager):        
+        self.config = config
         self.api_client = HackernewsClient(config, dpm)
         self.article_editor = HackernewsArticleEditor(llm, config, dpm)
         self.summary_writer = HackernewsSummaryWriter(llm, dpm)

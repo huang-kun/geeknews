@@ -3,6 +3,7 @@ import argparse
 import json
 import mistune
 
+from pathlib import Path
 from datetime import datetime, timedelta
 
 from geeknews.utils.logger import LOG
@@ -16,6 +17,7 @@ from geeknews.config import GeeknewsEmailConfig, GeeknewsWechatPPConfig
 
 from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.api_client import HackernewsClient, HN_MAX_DOWNLOADS, HN_RECENT_HOURS
+from geeknews.hackernews.article_editor import count_words
 from geeknews.hackernews.data_path import HackernewsDataPathManager
 from geeknews.hackernews.manager import HackernewsManager
 
@@ -41,6 +43,7 @@ class GeeknewsCommandHandler:
         hackernews_parser.add_argument('--run', action='store_true', help='是否获取每日热点并生成总结报告')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
         hackernews_parser.add_argument('--read', help='读取文章内容')
+        hackernews_parser.add_argument('--count-words', action='store_true', help='读取文章字数')
         hackernews_parser.add_argument('--summary', help='文章总结')
         hackernews_parser.add_argument('--report', action='store_true', help='生成markdown报告')
         hackernews_parser.add_argument('--render', help='Markdown渲染为HTML')
@@ -144,6 +147,37 @@ class GeeknewsCommandHandler:
                 with open(temp_path, 'w') as f:
                     f.write(content)
                 print(f"文章下载完成, 临时路径: {temp_path}")
+
+        elif args.count_words:
+            word_limit = hackernews_manager.config.validate_word_count
+            only_log_short = True
+
+            article_dir = hackernews_dpm.config.article_dir
+            article_dir_path = Path(article_dir)
+            for article_path in article_dir_path.rglob('*.md'):
+                file_path = str(article_path)
+                with open(file_path) as f:
+                    content = f.read()
+                
+                # remove comments from article
+                comment_index = content.find('USER_COMMENTS:')
+                if comment_index != -1:
+                    content = content[:comment_index]
+                else:
+                    comment_index = content.find('**Reader Comments**:')
+                    if comment_index != -1:
+                        content = content[:comment_index]
+                
+                word_count = count_words(content)
+                mark_as_short = "[SHORT] " if word_count < word_limit else ""
+                if mark_as_short:
+                    if '\n' in content:
+                        mark_as_short += content.split('\n')[0]
+                    else:
+                        mark_as_short += content[:50]
+                
+                if not only_log_short or mark_as_short:
+                    print(f"{file_path} [{word_count}] {mark_as_short}")
 
         elif args.summary:
             article_path = args.summary
