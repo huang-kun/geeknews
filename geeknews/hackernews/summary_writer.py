@@ -27,25 +27,10 @@ class HackernewsSummaryWriter:
     def __init__(self, llm: LLM, datapath_manager: HackernewsDataPathManager):
         self.llm = llm
         self.datapath_manager = datapath_manager
-        self.prompt_map = self.load_prompts()
+        self.prompt_map = LLM.get_system_prompt_map(subdir='hackernews')
         self.re_trans_var = re.compile(TRANSLATION_VAR)
         self.re_title = re.compile(r'^(#{1,6})\s*(?P<head>.+)\n*')
         self.re_comment_tag = re.compile(r'USER_COMMENTS:\s*\n*')
-
-    @staticmethod
-    def load_prompts():
-        prompts_dir = os.path.join('prompts', 'hackernews')
-
-        prompt_map = {}
-        for filename in os.listdir(prompts_dir):
-            basename, ext = os.path.splitext(filename)
-            if ext != '.txt':
-                continue
-            prompt_path = os.path.join(prompts_dir, filename)
-            with open(prompt_path) as f:
-                prompt_map[basename] = f.read().strip()
-        
-        return prompt_map
 
     def generate_daily_summaries(self, locale='zh_cn', date=GeeknewsDate.now(), override=False):
         article_paths = self.datapath_manager.get_daily_article_paths(date)

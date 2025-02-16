@@ -5,10 +5,34 @@ from geeknews.utils.logger import LOG
 
 class LLM:
 
+    prompt_map = {}
+
     def __init__(self, api_key=None, model='gpt-4o-mini'):
         self.api_key = api_key
         self.model = model
         self.client = self.create_openai_client()
+
+    @classmethod
+    def get_system_prompt_map(cls, subdir='hackernews'):
+        if cls.prompt_map:
+            return cls.prompt_map
+
+        prompts_dir = os.path.join('prompts', subdir)
+
+        for filename in os.listdir(prompts_dir):
+            basename, ext = os.path.splitext(filename)
+            if ext != '.txt':
+                continue
+            prompt_path = os.path.join(prompts_dir, filename)
+            with open(prompt_path) as f:
+                cls.prompt_map[basename] = f.read().strip()
+        
+        return cls.prompt_map
+    
+    @classmethod
+    def get_system_prompt(cls, name, subdir='hackernews'):
+        prompt_map = cls.get_system_prompt_map(subdir)
+        return prompt_map.get(name, '')
 
     def create_openai_client(self):
         api_key = self.api_key
