@@ -29,21 +29,21 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager, override_content=Tr
     date = GeeknewsDate.now()
 
     LOG.info(f'[开始执行定时任务]Hacker News每日热点汇总, date: {date}')
-    report_path = geeknews_manager.hackernews_dpm.get_report_file_path(locale=locale, date=date, ext='.html')
+    # report_path = geeknews_manager.hackernews_dpm.get_report_file_path(locale=locale, date=date, ext='.html')
     
-    if not os.path.exists(report_path):
-        geeknews_manager.hackernews_manager.generate_daily_report(locale=locale, date=date, override=override_content)
-    if not os.path.exists(report_path):
-        LOG.error("[定时任务]未发现任何报告")
-        return
+    # if not os.path.exists(report_path):
+    #     geeknews_manager.hackernews_manager.generate_daily_report(locale=locale, date=date, override=override_content)
+    # if not os.path.exists(report_path):
+    #     LOG.error("[定时任务]未发现任何报告")
+    #     return
     
-    with open(report_path) as f:
-        report_html = f.read()
+    # with open(report_path) as f:
+    #     report_html = f.read()
 
-    story_title = geeknews_manager.hackernews_manager.get_daily_top_story_title(locale, date)
-    final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
+    # story_title = geeknews_manager.hackernews_manager.get_daily_top_story_title(locale, date)
+    # final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
     
-    geeknews_manager.email_notifier.notify(title=final_title, content=report_html, debug=debug_send_email)
+    # geeknews_manager.email_notifier.notify(title=final_title, content=report_html, debug=debug_send_email)
     geeknews_manager.wpp_notifier.post_draft(locale=locale, date=date, thumb_media_id=None)
 
     LOG.info(f"[定时任务执行完毕]")
