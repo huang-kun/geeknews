@@ -7,8 +7,9 @@ class LLM:
 
     prompt_map = {}
 
-    def __init__(self, api_key=None, model='gpt-4o-mini'):
+    def __init__(self, api_key=None, base_url=None, model='gpt-4o-mini'):
         self.api_key = api_key
+        self.base_url = base_url
         self.model = model
         self.client = self.create_openai_client()
 
@@ -35,12 +36,10 @@ class LLM:
         return prompt_map.get(name, '')
 
     def create_openai_client(self):
-        api_key = self.api_key
-        if not api_key and 'OPENAI_API_KEY' in os.environ:
-            api_key = os.environ["OPENAI_API_KEY"]
+        api_key = self.get_config_value(self.api_key, 'OPENAI_API_KEY')
+        base_url = self.get_config_value(self.base_url, 'OPENAI_BASE_URL')
 
-        if "OPENAI_BASE_URL" in os.environ:
-            base_url = os.environ['OPENAI_BASE_URL']
+        if base_url:
             return OpenAI(
                 base_url=base_url,
                 api_key=api_key,
@@ -52,6 +51,11 @@ class LLM:
         else:
             return OpenAI(api_key=api_key)
         
+    def get_config_value(self, value, default_key):
+        if not value and default_key in os.environ:
+            return os.getenv(default_key)
+        return value
+
     def is_image_url(self, url):
         for ext in ['.png', '.jpeg', '.jpg']:
             if url.endswith(ext):
