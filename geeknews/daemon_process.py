@@ -29,13 +29,13 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager, override_content=Tr
     date = GeeknewsDate.now()
 
     LOG.info(f'[开始执行定时任务]Hacker News每日热点汇总, date: {date}')
-    # report_path = geeknews_manager.hackernews_dpm.get_report_file_path(locale=locale, date=date, ext='.html')
+    report_path = geeknews_manager.hackernews_dpm.get_report_file_path(locale=locale, date=date, ext='.html')
     
-    # if not os.path.exists(report_path):
-    #     geeknews_manager.hackernews_manager.generate_daily_report(locale=locale, date=date, override=override_content)
-    # if not os.path.exists(report_path):
-    #     LOG.error("[定时任务]未发现任何报告")
-    #     return
+    if not os.path.exists(report_path):
+        geeknews_manager.hackernews_manager.generate_daily_report(locale=locale, date=date, override=override_content)
+    if not os.path.exists(report_path):
+        LOG.error("[定时任务]未发现任何报告")
+        return
     
     # with open(report_path) as f:
     #     report_html = f.read()
