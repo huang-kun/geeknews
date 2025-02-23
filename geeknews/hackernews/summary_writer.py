@@ -119,6 +119,10 @@ class HackernewsSummaryWriter:
             translated_titles = translated_content.split('\n')
             if len(story_titles) != len(translated_titles):
                 LOG.error(f"大模型翻译故事列表出错, 前后列表数量不一致: {len(story_titles)} != {len(translated_titles)}")
+                # save content for debugging
+                summary_list_trans_path = os.path.join(summary_full_dir, story_list_ori_name + '_trans.md')
+                with open(summary_list_trans_path, 'w') as f:
+                    f.write(translated_content)
                 return
             
             for index, story in enumerate(short_stories):
