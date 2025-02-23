@@ -7,7 +7,7 @@ class LLM:
 
     prompt_map = {}
 
-    def __init__(self, api_key=None, base_url=None, model='gpt-4o-mini'):
+    def __init__(self, api_key=None, base_url=None, model='gpt-4o'):
         self.api_key = api_key
         self.base_url = base_url
         self.model = model
