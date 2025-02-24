@@ -160,7 +160,7 @@ class HackernewsReportWriter:
 
     def get_title(self, locale):
         if locale == 'zh_cn':
-            return "HN今日热点"
+            return "24小时热点回顾"
         else:
             return "HN: Daily Stories"
         
