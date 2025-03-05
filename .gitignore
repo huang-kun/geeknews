@@ -176,3 +176,4 @@ cython_debug/
 # geeknews
 test_results.txt
 todo.md
+.backup/
