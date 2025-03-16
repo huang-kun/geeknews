@@ -27,7 +27,11 @@ class WppNotifier:
             return
         
         # get report content
-        story_title = self.hackernews_manager.get_daily_top_story_title(locale, date)
+        story_title, story_summary = self.hackernews_manager.get_daily_top_story_title_and_content(
+            locale=locale, 
+            date=date, 
+            limit=self.config.digest_word_count
+        )
         final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
         
         with open(report_path) as f:
@@ -37,6 +41,7 @@ class WppNotifier:
         article = WppDraftArticle(
             title=final_title,
             author=self.config.author_name,
+            digest=story_summary,
             content=report_content,
             thumb_media_id=thumb_media_id if thumb_media_id else self.config.default_media_id
         )

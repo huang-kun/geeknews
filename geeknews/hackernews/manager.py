@@ -33,21 +33,31 @@ class HackernewsManager:
         self.report_writer.generate_html_report('web', locale=locale, date=date, override=override)
         self.report_writer.generate_html_report('wpp', locale=locale, date=date, override=override)
 
-    def get_daily_top_story_title(self, locale='zh_cn', date=GeeknewsDate.now()):
+    def get_daily_top_story_title_and_content(self, locale='zh_cn', date=GeeknewsDate.now(), limit=None):
         # find story id from topstories.json
         story_id = self.api_client.get_story_id_with_highest_score('topstories', article_only=True, date=date)
         if story_id <= 0:
             LOG.error('无法生成热点标题: 未能找到合适的数据')
-            return ''
+            return '', ''
         
         # find title from summaries
-        translated_title = self.summary_writer.find_summary_title(story_id, locale, date)
+        translated_title, summary = self.summary_writer.find_summary_title_and_content(story_id, locale, date, limit)
         if not translated_title:
             LOG.error(f'无法生成热点标题: {story_id}, {locale}, {date.joined_path}')
-            return ''
+            return '', ''
         
         # if title has prefix like "Show HN: ", remove prefix to make title shorter
-        return re.sub(r'^.*?HN:\s?', '', translated_title)
+        modified_title = re.sub(r'^.*?HN:\s?', '', translated_title)
+        modified_summary = summary
+        if locale == 'zh_cn':
+            end_char = '。'
+            if not summary.endswith(end_char):
+                end_index = summary.rindex(end_char)
+                if end_index > 0:
+                    modified_summary = summary[:end_index+1]
+        
+        return modified_title, modified_summary
+
 
 def test_hackernews_manager():
     llm = LLM()

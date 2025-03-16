@@ -5,9 +5,10 @@ from geeknews.notifier.wechatpp.api.base import WppTokenBaseApi
 class WppDraftArticle:
     '''图文消息结构'''
 
-    def __init__(self, title, author, content, thumb_media_id, need_open_comment=1, only_fans_can_comment=0):
+    def __init__(self, title, author, digest, content, thumb_media_id, need_open_comment=1, only_fans_can_comment=0):
         self.title = title
         self.author = author
+        self.digest = digest
         self.content = content
         self.thumb_media_id = thumb_media_id
         self.need_open_comment = need_open_comment
@@ -18,6 +19,7 @@ class WppDraftArticle:
             "article_type": "news",
             "title": self.title,
             "author": self.author,
+            "digest": self.digest,
             "content": self.content,
             'thumb_media_id': self.thumb_media_id,
             "need_open_comment": self.need_open_comment,

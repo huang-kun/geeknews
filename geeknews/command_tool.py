@@ -45,6 +45,7 @@ class GeeknewsCommandHandler:
         hackernews_parser.add_argument('--clean-cache', action='store_true', help='清理本地缓存的story数据')
         hackernews_parser.add_argument('--download', help='下载文章链接')
         hackernews_parser.add_argument('--read', help='读取文章内容')
+        hackernews_parser.add_argument('--read-sum', help='读取文章摘要')
         hackernews_parser.add_argument('--validate', action='store_true', help='检查短文章内容的相关性')
         hackernews_parser.add_argument('--summary', help='文章总结')
         hackernews_parser.add_argument('--report', action='store_true', help='生成markdown报告')
@@ -144,6 +145,12 @@ class GeeknewsCommandHandler:
                 with open(temp_path, 'w') as f:
                     f.write(content)
                 print(f"文章下载完成, 临时路径: {temp_path}")
+
+        elif args.read_sum:
+            story_id = args.read_sum
+            title, summary = hackernews_manager.summary_writer.find_summary_title_and_content(story_id, locale, date)
+            print(f"标题: {title}")
+            print(f"摘要: {summary}")
 
         elif args.validate:
             debug = args.debug
