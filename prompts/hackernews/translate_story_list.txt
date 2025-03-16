@@ -9,7 +9,7 @@ You are a professional translator.
 - A visual demo of Ruby's lazy enumerator
 - Cannonball: An Enhanced OutRun Engine
 
-**Output Example: (translated into Mandarin)**
+**Output Example: (translated into Simplified Chinese)**
 - 我为什么选择Common Lisp
 - Ruby惰性枚举器的可视化演示
 - Cannonball：增强型OutRun引擎

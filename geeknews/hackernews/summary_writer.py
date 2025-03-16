@@ -8,7 +8,7 @@ from geeknews.hackernews.api_client import HackernewsClient
 
 TRANSLATION_VAR = '\{translate_target_language\}'
 TRANSLATION_LOCALE_TO_LANGUAGE = {
-    'zh_cn': 'Mandarin',
+    'zh_cn': 'Simplified Chinese',
     'en_us': 'English',
     'en': 'English',
 }
