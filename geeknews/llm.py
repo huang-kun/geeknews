@@ -149,6 +149,7 @@ def test_llm():
     msg = llm.get_gemini_text(
         system_prompt='You are a helpful assistant.',
         user_content='hello',
+        model='gemini-2.0-flash'
     )
     print(msg)
 
