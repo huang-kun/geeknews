@@ -2,6 +2,9 @@ import os
 import re
 import requests
 import json
+import aiohttp
+import aiofiles
+import asyncio
 from datetime import datetime
 from geeknews.hackernews.config import HackernewsConfig
 from geeknews.hackernews.data_path import HackernewsDataPathManager
@@ -245,6 +248,62 @@ class HackernewsClient:
     def get_default_story_url(story_id):
         return f'https://news.ycombinator.com/item?id={story_id}'
     
+    async def fetch_url(self, url):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    return await response.json()
+        except Exception as e:
+            LOG.error(f"下载失败: {e}")
+            return {}
+    
+    async def aio_fetch_stories(self, story_ids, date):
+        tasks = []
+        for id in story_ids:
+            task = asyncio.create_task(self.aio_fetch_story(id, date))
+            tasks.append(task)
+        result = await asyncio.gather(*tasks)
+        return result
+    
+    async def aio_fetch_story(self, id, date):
+        story = await self.aio_get_local_item(id, date)
+        if not story:
+            # LOG.debug(f"开始下载story_id: {id}")
+            url = self.api.get_item_url(id)
+            story = await self.fetch_url(url)
+            if story:
+                await self.aio_save_item(id, story, date)
+        return story
+
+    async def aio_get_local_item(self, id, date):
+        story_path = self.get_story_path(id, date)
+        if not os.path.exists(story_path):
+            return {}
+        # LOG.debug(f"本地读取已下载的story_id: {id}")
+        async with aiofiles.open(story_path) as f:
+            text = await f.read()
+            return json.loads(text)
+
+    async def aio_save_item(self, id, item, date):
+        story_path = self.get_story_path(id, date)
+        story_dir = os.path.dirname(story_path)
+        if not os.path.exists(story_dir):
+            os.makedirs(story_dir)
+        # LOG.debug(f"保存下载的story_id: {id}")
+        async with aiofiles.open(story_path, 'w') as f:
+            text = json.dumps(item, ensure_ascii=False)
+            await f.write(text)
+
+    def prefetch_stories(self, story_ids, date):
+        stories = []
+        for id in story_ids:
+            story = self.get_local_item(id, date)
+            if not story:
+                story = self.fetch_item(id)
+                self.save_item(id, story, date)
+            stories.append(story)
+        return stories
+    
     def custom_rank_ids(self, story_ids, date=GeeknewsDate.now()):
         # get first batch ids and fetch details, filter in recent hours and sort by score
         max_downloads = HN_MAX_DOWNLOADS
@@ -254,12 +313,11 @@ class HackernewsClient:
 
         stories = []
         story_ids = story_ids[:max_downloads]
-        for id in story_ids:
-            story = self.get_local_item(id, date)
-            if not story:
-                story = self.fetch_item(id)
-                self.save_item(id, story, date)
-            stories.append(story)
+
+        if self.config.story_fetch_concurrent:
+            stories = asyncio.run(self.aio_fetch_stories(story_ids, date))
+        else:
+            stories = self.prefetch_stories(story_ids, date)
         
         stories = self.custom_rank_stories(stories)
         return list(map(lambda x: x.get('id', 0), stories))

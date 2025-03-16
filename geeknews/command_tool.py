@@ -111,32 +111,12 @@ class GeeknewsCommandHandler:
             override = False
             story_dir = hackernews_dpm.get_story_date_dir(date)
             story_ids = hackernews_manager.api_client.fetch_top_story_ids()
-            
-            limit = HN_MAX_DOWNLOADS
-
-            sub_ids = story_ids[:limit]
-            
-            print(f"Get {len(story_ids)} stories, limited in {limit}.")
-            
-            stories = []
-            for index, id in enumerate(sub_ids):
-                story_path = os.path.join(story_dir, f'{id}.json')
-                if os.path.exists(story_path) and not override:
-                    with open(story_path) as f:
-                        story = json.load(f)
-                else:
-                    story = hackernews_manager.api_client.fetch_item(id)
-                    with open(story_path, 'w') as f:
-                        json.dump(story, f, ensure_ascii=False)
-                
-                stories.append(story)
-                # self.debug_log_story(story, index)
-            
-            print("==== fitler recent and sort by score ====")
-
-            stories = hackernews_manager.api_client.custom_rank_stories(stories)
-            for index, story in enumerate(stories):
-                self.debug_log_story(story, index)
+            story_ids = hackernews_manager.api_client.custom_rank_ids(story_ids, date)
+            for index, id in enumerate(story_ids):
+                story_path = hackernews_dpm.get_story_file_path(id, date)
+                with open(story_path) as f:
+                    story = json.load(f)
+                    self.debug_log_story(story, index)
 
         elif args.download:
             url = args.download

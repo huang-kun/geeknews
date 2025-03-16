@@ -12,6 +12,7 @@ class HackernewsConfig:
     daily_story_max_count: int
     daily_article_max_count: int
     each_story_max_comment_count: int
+    story_fetch_concurrent: bool
 
     summary_model: str
 
@@ -33,6 +34,7 @@ class HackernewsConfig:
         cls.daily_story_max_count = configparser.get_integer(cls.section, 'daily_story_max_count')
         cls.daily_article_max_count = configparser.get_integer(cls.section, 'daily_article_max_count')
         cls.each_story_max_comment_count = configparser.get_integer(cls.section, 'each_story_max_comment_count')
+        cls.story_fetch_concurrent = configparser.get_bool(cls.section, 'story_fetch_concurrent')
 
         cls.summary_model = configparser.get(cls.section, 'summary_model')
 
