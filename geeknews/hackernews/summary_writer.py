@@ -24,8 +24,9 @@ class HackernewsSummaryWriter:
     Also translate story list.
     '''
 
-    def __init__(self, llm: LLM, datapath_manager: HackernewsDataPathManager):
+    def __init__(self, llm: LLM, config: HackernewsConfig, datapath_manager: HackernewsDataPathManager):
         self.llm = llm
+        self.config = config
         self.datapath_manager = datapath_manager
         self.prompt_map = LLM.get_system_prompt_map(subdir='hackernews')
         self.re_trans_var = re.compile(TRANSLATION_VAR)
@@ -70,7 +71,7 @@ class HackernewsSummaryWriter:
             system_prompt = self.re_trans_var.sub(language, self.prompt_map['summary_article'])
 
         LOG.debug(f'开始总结文章: {article_id}')
-        summary_content = self.llm.generate_text(system_prompt, article_content)
+        summary_content = self.llm.generate_text(system_prompt, article_content, self.config.summary_model)
         final_content = self.modify_summarized_content(
             article_id=article_id, 
             article_url=story.get('url', HackernewsClient.get_default_story_url(article_id)), 
@@ -219,5 +220,5 @@ def test_hackernews_summary_writer():
     llm = LLM()
     config = HackernewsConfig.get_from_parser()
     dpm = HackernewsDataPathManager(config)
-    writer = HackernewsSummaryWriter(llm, dpm)
+    writer = HackernewsSummaryWriter(llm, config, dpm)
     writer.generate_daily_summaries()

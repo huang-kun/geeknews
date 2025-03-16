@@ -13,6 +13,8 @@ class HackernewsConfig:
     daily_article_max_count: int
     each_story_max_comment_count: int
 
+    summary_model: str
+
     max_word_count: int
     validate_word_count: int
     validation_score: int
@@ -31,6 +33,8 @@ class HackernewsConfig:
         cls.daily_story_max_count = configparser.get_integer(cls.section, 'daily_story_max_count')
         cls.daily_article_max_count = configparser.get_integer(cls.section, 'daily_article_max_count')
         cls.each_story_max_comment_count = configparser.get_integer(cls.section, 'each_story_max_comment_count')
+
+        cls.summary_model = configparser.get(cls.section, 'summary_model')
 
         cls.max_word_count = configparser.get_integer(cls.section, 'max_word_count')
         cls.validate_word_count = configparser.get_integer(cls.section, 'validate_word_count')

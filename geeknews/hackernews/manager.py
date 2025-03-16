@@ -22,7 +22,7 @@ class HackernewsManager:
         self.config = config
         self.api_client = HackernewsClient(config, dpm)
         self.article_editor = HackernewsArticleEditor(llm, config, dpm)
-        self.summary_writer = HackernewsSummaryWriter(llm, dpm)
+        self.summary_writer = HackernewsSummaryWriter(llm, config, dpm)
         self.report_writer = HackernewsReportWriter(dpm)
         self.datapath_manager = dpm
     

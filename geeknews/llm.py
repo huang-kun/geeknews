@@ -108,20 +108,20 @@ class LLM:
         choice = response.choices[0]
         return choice.message.content
     
-    def generate_text(self, system_prompt, user_content):
-        if self.gemini_client:
-            return self.get_gemini_text(system_prompt, user_content)
+    def generate_text(self, system_prompt, user_content, model):
+        if model.startswith('gemini') and self.gemini_client:
+            return self.get_gemini_text(system_prompt, user_content, model)
         else:
             return self.get_assistant_message(system_prompt, user_content)
     
-    def get_assistant_message(self, system_prompt, user_content):
+    def get_assistant_message(self, system_prompt, user_content, model=None):
         messages = [
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': user_content}
         ]
         try:
             response = self.openai_client.chat.completions.create(
-                model=self.model,
+                model=model if model else self.model,
                 messages=messages
             )
             return response.choices[0].message.content
@@ -129,7 +129,7 @@ class LLM:
             LOG.error(f"请求openai出错: {e}")
             return ''
         
-    def get_gemini_text(self, system_prompt, user_content, model='gemini-2.0-flash'):
+    def get_gemini_text(self, system_prompt, user_content, model):
         try:
             response = self.gemini_client.models.generate_content(
                 model=model, 
