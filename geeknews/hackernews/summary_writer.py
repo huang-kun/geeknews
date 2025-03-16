@@ -70,7 +70,7 @@ class HackernewsSummaryWriter:
             system_prompt = self.re_trans_var.sub(language, self.prompt_map['summary_article'])
 
         LOG.debug(f'开始总结文章: {article_id}')
-        summary_content = self.llm.get_assistant_message(system_prompt, article_content)
+        summary_content = self.llm.generate_text(system_prompt, article_content)
         final_content = self.modify_summarized_content(
             article_id=article_id, 
             article_url=story.get('url', HackernewsClient.get_default_story_url(article_id)), 

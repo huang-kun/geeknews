@@ -1,6 +1,8 @@
 import os
 import httpx
 from openai import OpenAI
+from google import genai
+from google.genai import types
 from geeknews.utils.logger import LOG
 
 class LLM:
@@ -11,7 +13,8 @@ class LLM:
         self.api_key = api_key
         self.base_url = base_url
         self.model = model
-        self.client = self.create_openai_client()
+        self.openai_client = self.create_openai_client()
+        self.gemini_client = self.create_gemini_client()
 
     @classmethod
     def get_system_prompt_map(cls, subdir='hackernews'):
@@ -50,6 +53,12 @@ class LLM:
             )
         else:
             return OpenAI(api_key=api_key)
+    
+    def create_gemini_client(self):
+        gemini_api_key = os.getenv('GEMINI_API_KEY', '')
+        if not gemini_api_key:
+            return None
+        return genai.Client(api_key=gemini_api_key)
         
     def get_config_value(self, value, default_key):
         if not value and default_key in os.environ:
@@ -70,7 +79,7 @@ class LLM:
         if self.model != 'openai' or not self.is_image_url(image_url):
             return None
         
-        response = self.client.chat.completions.create(
+        response = self.openai_client.chat.completions.create(
             model=self.config.openai_model_name,  # 使用配置中的OpenAI模型名称
             messages=[
                 {
@@ -99,27 +108,47 @@ class LLM:
         choice = response.choices[0]
         return choice.message.content
     
+    def generate_text(self, system_prompt, user_content):
+        if self.gemini_client:
+            return self.get_gemini_text(system_prompt, user_content)
+        else:
+            return self.get_assistant_message(system_prompt, user_content)
+    
     def get_assistant_message(self, system_prompt, user_content):
         messages = [
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': user_content}
         ]
         try:
-            response = self.client.chat.completions.create(
+            response = self.openai_client.chat.completions.create(
                 model=self.model,
                 messages=messages
             )
             return response.choices[0].message.content
         except Exception as e:
-            LOG.error(f"请求大模型时发生错误: {e}")
+            LOG.error(f"请求openai出错: {e}")
+            return ''
+        
+    def get_gemini_text(self, system_prompt, user_content, model='gemini-2.0-flash'):
+        try:
+            response = self.gemini_client.models.generate_content(
+                model=model, 
+                contents=user_content, 
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt
+                ),
+            )
+            return response.text
+        except Exception as e:
+            LOG.error(f"请求gemini出错: {e}")
             return ''
 
 
 def test_llm():
     llm = LLM()
-    msg = llm.get_assistant_message(
-        system_prompt='You are an excellent prompting engineer',
-        user_content='I would like to generate a prompt for the editors of a scientific article: your readers are mostly ordinary people who care about cutting-edge information, please use a user-friendly style to interpret the article, and you can use your personal style while preserving the facts, and avoid being too rigid.',
+    msg = llm.get_gemini_text(
+        system_prompt='You are a helpful assistant.',
+        user_content='hello',
     )
     print(msg)
 
