@@ -42,6 +42,7 @@ class GeeknewsCommandHandler:
         hackernews_parser = subparsers.add_parser('hackernews', help='Hacker News top stories')
         hackernews_parser.add_argument('--run', action='store_true', help='是否获取每日热点并生成总结报告')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
+        hackernews_parser.add_argument('--clean-cache', action='store_true', help='清理本地缓存的story数据')
         hackernews_parser.add_argument('--download', help='下载文章链接')
         hackernews_parser.add_argument('--read', help='读取文章内容')
         hackernews_parser.add_argument('--validate', action='store_true', help='检查短文章内容的相关性')
@@ -117,6 +118,9 @@ class GeeknewsCommandHandler:
                 with open(story_path) as f:
                     story = json.load(f)
                     self.debug_log_story(story, index)
+
+        elif args.clean_cache:
+            hackernews_manager.api_client.clean_local_items(date)
 
         elif args.download:
             url = args.download

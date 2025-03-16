@@ -47,6 +47,9 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager, override_content=Tr
     geeknews_manager.wpp_notifier.post_draft(locale=locale, date=date, thumb_media_id=None)
     geeknews_manager.email_notifier.notify(title="已发布HackerNews", content='请及时编辑微信公众号', debug=True)
 
+    if os.path.exists(report_path):
+        geeknews_manager.hackernews_manager.api_client.clean_local_items(date)
+
     LOG.info(f"[定时任务执行完毕]")
 
 

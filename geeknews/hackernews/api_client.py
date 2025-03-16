@@ -396,6 +396,15 @@ class HackernewsClient:
         arr[index:] = elements_to_move + arr[index:]
         
         return arr
+    
+    def clean_local_items(self, date):
+        story_dir = self.datapath_manager.get_story_date_dir(date)
+        item_names = os.listdir(story_dir)
+        for filename in item_names:
+            name, ext = os.path.splitext(filename)
+            if name.isdigit() and ext == '.json':
+                item_path = os.path.join(story_dir, filename)
+                os.remove(item_path)
 
 
 def test_hackernews_client():
