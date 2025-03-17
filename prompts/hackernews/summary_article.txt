@@ -12,11 +12,11 @@
 </goal>
 
 <format>
-# {文章标题}
+# {翻译为简体中文的文章标题}
 
 {文章总结}
 
-USER_COMMENTS：{评论总结}
+USER_COMMENTS: {评论总结}
 </format>
 
 <requirements>
