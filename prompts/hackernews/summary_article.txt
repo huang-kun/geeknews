@@ -28,7 +28,7 @@ USER_COMMENTS: {评论总结}
 
 <comments_summary>
 - 评论总结以 USER_COMMENTS 关键字作为标记，后面的内容都是评论。
-- 用3-5句概括评论，且避免使用项目符号格式(bullet point)，评论总结只需要一个段落，不要分割。
+- 用2-3句概括评论，且避免使用项目符号格式(bullet point)，评论总结只需要一个段落，不要分割。
 - 如果没有评论，只需要输出 NO_COMMENT 关键字。
 </comments_summary>
 </requirements>
