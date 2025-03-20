@@ -4,6 +4,7 @@ import html
 import re
 import requests
 from bs4 import BeautifulSoup
+from markdownify import MarkdownConverter
 
 from geeknews.llm import LLM
 from geeknews.utils.logger import LOG
@@ -106,6 +107,7 @@ class HackernewsArticleEditor:
         self.link_re = re.compile(r'<a href=.*?\/a>')
         self.score_re = re.compile(r'-?\d+')
         self.job_title_re = re.compile(r'\(YC\s\w\d+\)\s\w+\s[Hh]iring')
+        self.md_converter = MarkdownConverter()
     
     def parse_stories(self, stories):
         results = []
@@ -305,7 +307,8 @@ class HackernewsArticleEditor:
 
             if "text/html" in response.headers.get("Content-Type", "") or response.text.lstrip().startswith("<!DOCTYPE html>"):
                 soup = BeautifulSoup(response.text, 'html.parser')
-                text = soup.get_text(separator='\n\n', strip=True)
+                # text = soup.get_text(separator='\n\n', strip=True)
+                text = self.md_converter.convert_soup(soup)
                 return text
             else:
                 LOG.error(f'从网页中提取文本失败: {url}')
