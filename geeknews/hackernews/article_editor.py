@@ -2,7 +2,7 @@ import os
 import json
 import html
 import re
-import requests
+from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
 from markdownify import MarkdownConverter
 
@@ -271,7 +271,7 @@ class HackernewsArticleEditor:
         if story.text:
             return story.text
         else:
-            return self.read_text_from_url(story.url)
+            return self.get_markdown_text_from_url(story.url)
         
     def generate_article_comment(self, comments):
         if not comments:
@@ -296,23 +296,30 @@ class HackernewsArticleEditor:
         
         return lines
     
-    def read_text_from_url(self, url):
+    def get_markdown_text_from_url(self, url):
         if not url:
             return ''
         
         LOG.debug(f'正在读取链接: {url}')
         try:
-            response = requests.get(url)
-            response.raise_for_status()
+            text = self.get_text_from_url(url)
+            soup = BeautifulSoup(text, 'html.parser')
+            return self.md_converter.convert_soup(soup)
+        except Exception as e:
+            LOG.error(str(e))
+            return ''
+    
+    def get_text_from_url(self, url):
+        # https://www.useragentstring.com/pages/Chrome/
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672 Safari/537.36'
+        }
 
-            if "text/html" in response.headers.get("Content-Type", "") or response.text.lstrip().startswith("<!DOCTYPE html>"):
-                soup = BeautifulSoup(response.text, 'html.parser')
-                # text = soup.get_text(separator='\n\n', strip=True)
-                text = self.md_converter.convert_soup(soup)
-                return text
-            else:
-                LOG.error(f'从网页中提取文本失败: {url}')
-                return ''
+        # https://tariyekorogha.medium.com/solution-to-403-client-error-forbidden-for-url-with-python-3-180effbdb21
+        try:
+            request = Request(url, headers=headers)
+            data = urlopen(request).read()
+            return data.decode("utf-8")
         except Exception as e:
             LOG.error(str(e))
             return ''
