@@ -268,10 +268,10 @@ class HackernewsArticleEditor:
         return f"# {title}"
     
     def generate_article_text(self, story: HackernewsSimpleStory) -> str:
+        text = self.get_markdown_text_from_url(story.url)
         if story.text:
-            return story.text
-        else:
-            return self.get_markdown_text_from_url(story.url)
+            return story.text + '\n\n' + text
+        return text
         
     def generate_article_comment(self, comments):
         if not comments:
