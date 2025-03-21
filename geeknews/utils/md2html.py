@@ -61,7 +61,7 @@ class MarkdownRenderer:
         self.re_comment = re.compile(r'<!-- .*? -->')
         self.re_main_title = re.compile(r'<h1>.*?<\/h1>')
         self.re_subtitle_tag = re.compile(r'<h[^12]>') # find <h3>, <h4> ...
-        self.re_footnote = re.compile(r'\[\^(?P<fn>\d+)\]')
+        self.re_footnote = re.compile(r'\[\^(?P<fn>\d+)\]') # [^1], [^2] ...
 
         # load default css
         css_content = ''
