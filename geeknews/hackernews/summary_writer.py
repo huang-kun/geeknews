@@ -176,7 +176,7 @@ class HackernewsSummaryWriter:
         if comment_match:
             # add article link to the end of article content
             comment_start = comment_match.start()
-            article_last_char_index = self.find_text_ended_before_index(content, comment_start)
+            article_last_char_index = self.find_text_ended_before_index(content, comment_start, False)
             if article_last_char_index > 0:
                 article_link = f'[>>]({article_url})'
                 content = self.insert_str(content, article_link, article_last_char_index+1)
@@ -185,7 +185,7 @@ class HackernewsSummaryWriter:
             comment_url = f'https://news.ycombinator.com/item?id={article_id}'
             comment_link = f'[>>]({comment_url})'
             if content.endswith('\n'):
-                content_last_char_index = self.find_text_ended_before_index(content, len(content)-1)
+                content_last_char_index = self.find_text_ended_before_index(content, len(content)-1, True)
                 if content_last_char_index > 0:
                     content = self.insert_str(content, comment_link, content_last_char_index+1)
             else:
@@ -202,7 +202,7 @@ class HackernewsSummaryWriter:
             # add article link to end of content
             article_link = f'[>>]({article_url})'
             if content.endswith('\n'):
-                content_last_char_index = self.find_text_ended_before_index(content, len(content)-1)
+                content_last_char_index = self.find_text_ended_before_index(content, len(content)-1, True)
                 if content_last_char_index > 0:
                     content = self.insert_str(content, article_link, content_last_char_index+1)
             else:
@@ -218,10 +218,13 @@ class HackernewsSummaryWriter:
         return base_string[:index] + insert_string + base_string[index:]
 
     @staticmethod
-    def find_text_ended_before_index(base_string, before_index):
-        if before_index < 1 or base_string[before_index-1] != '\n':
+    def find_text_ended_before_index(base_string, index, included):
+        '''Find index of the last sentence ending before given index.'''
+        if index < 1:
             return -1
-        for i in range(before_index-1, 0, -1):
+        # skip '\n' and find text ending.
+        start_index = index if included else index - 1
+        for i in range(start_index, 0, -1):
             if base_string[i] == '\n':
                 continue
             return i
