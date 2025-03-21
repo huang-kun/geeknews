@@ -248,8 +248,10 @@ class MarkdownRenderer:
         # check footnotes
         if self.re_footnote.search(html_content):
             html_content = self.re_footnote.sub('<span class="footnote-tag">\g<fn></span>', html_content)
-            if len(re.findall(r'<ol>', html_content)) == 1:
-                html_content = re.sub(r'<ol>', '<ol id="footnotes">', html_content, count=1)
+            # find last <ol> list (e.g. reference section) and set id='footnotes' for css style (small text size)
+            ol_index = html_content.rfind('<ol>')
+            if ol_index > 0:
+                html_content = html_content[:ol_index] + '<ol id="footnotes">' + html_content[ol_index+4:]
 
         # wrap html tags
         full_html = HTML_CSS_STYLE_TEMPLATE.format(
