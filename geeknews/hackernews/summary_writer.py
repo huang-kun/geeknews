@@ -31,7 +31,7 @@ class HackernewsSummaryWriter:
         self.prompt_map = LLM.get_system_prompt_map(subdir='hackernews')
         self.re_trans_var = re.compile(TRANSLATION_VAR)
         self.re_title = re.compile(r'^(#{1,6})\s*(?P<head>.+)\n*')
-        self.re_comment_tag = re.compile(r'USER_COMMENTS[:：]\s?\n?')
+        self.re_comment_tag = re.compile(r'USER\\?_COMMENTS[:：]\s?\n?') # USER_COMMENTS: , USER\_COMMENTS: , ...
 
     def generate_daily_summaries(self, locale='zh_cn', date=GeeknewsDate.now(), override=False):
         article_paths = self.datapath_manager.get_daily_article_paths(date)
