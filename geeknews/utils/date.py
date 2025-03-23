@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class GeeknewsDate:
     
@@ -24,6 +24,30 @@ class GeeknewsDate:
     def joined_path(self):
         components = map(lambda x: str(x), [self.year, self.month, self.day])
         return os.sep.join(components)
+    
+    @property
+    def seconds_until_next_day(self):
+        dt_now = datetime.now()
+        dt_this_day = self.get_datetime()
+        dt_next_day = dt_this_day + timedelta(days=1)
+        delta = dt_next_day - dt_now
+        return delta.seconds
+    
+    def get_datetime(self):
+        return datetime(
+            year=self.year, 
+            month=self.month, 
+            day=self.day
+        )
+    
+    def get_next_date(self):
+        dt_this_day = self.get_datetime()
+        dt_next_day = dt_this_day + timedelta(days=1)
+        return GeeknewsDate(
+            year=dt_next_day.year,
+            month=dt_next_day.month,
+            day=dt_next_day.day,
+        )
     
     @classmethod
     def test_date(cls):

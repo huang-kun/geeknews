@@ -405,7 +405,39 @@ class HackernewsClient:
             if name.isdigit() and ext == '.json':
                 item_path = os.path.join(story_dir, filename)
                 os.remove(item_path)
-
+    
+    def get_previews(self, date=GeeknewsDate.now(), auto_next_day=True):
+        # if date is 1 hour remaining to next day, then preview next date
+        if auto_next_day and date.seconds_until_next_day < 3600:
+            date = date.get_next_date()
+        
+        # fetch stories and rank them
+        story_ids = self.fetch_top_story_ids()
+        story_ids = self.custom_rank_ids(story_ids, date)
+        
+        # get story list
+        stories = []
+        for index, id in enumerate(story_ids):
+            story_path = self.datapath_manager.get_story_file_path(id, date)
+            if os.path.exists(story_path):
+                with open(story_path) as f:
+                    story = json.load(f)
+                
+                simple_story = {
+                    "id": story["id"],
+                    "title": story["title"],
+                    "score": story["score"],
+                }
+                stories.append(simple_story)
+        
+        # save story list
+        story_dir = self.datapath_manager.get_story_date_dir(date)
+        preview_path = os.path.join(story_dir, 'preview.json')
+        with open(preview_path, 'w') as f:
+            json.dump(stories, f, ensure_ascii=False)
+        
+        return preview_path
+        
 
 def test_hackernews_client():
     config = HackernewsConfig.get_from_parser()
