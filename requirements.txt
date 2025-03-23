@@ -8,14 +8,17 @@ asgiref==3.8.1
 async-timeout==5.0.1
 attrs==25.1.0
 beautifulsoup4==4.12.3
+blinker==1.9.0
 bs4==0.0.2
 cachetools==5.5.2
 certifi==2024.12.14
 charset-normalizer==3.4.1
+click==8.1.8
 css-inline==0.14.6
 distro==1.9.0
 emoji==2.14.1
 exceptiongroup==1.2.2
+Flask==3.1.0
 frozenlist==1.5.0
 gh-md-to-html==1.21.3
 google-auth==2.38.0
@@ -25,9 +28,12 @@ html2text==2024.2.26
 httpcore==1.0.7
 httpx==0.28.1
 idna==3.10
+itsdangerous==2.2.0
+Jinja2==3.1.6
 jiter==0.8.2
 loguru==0.7.3
 markdownify==1.1.0
+MarkupSafe==3.0.2
 mistune==3.1.0
 multidict==6.1.0
 openai==1.59.3
@@ -52,4 +58,5 @@ typing_extensions==4.12.2
 urllib3==2.3.0
 webcolors==24.11.1
 websockets==14.2
+Werkzeug==3.1.3
 yarl==1.18.3
