@@ -43,6 +43,7 @@ class GeeknewsCommandHandler:
         hackernews_parser.add_argument('--run', action='store_true', help='是否获取每日热点并生成总结报告')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
         hackernews_parser.add_argument('--preview', action='store_true', help='热点列表预览')
+        hackernews_parser.add_argument('--set-priority', help='设置预览列表排序优先级：e.g. "low:1,3,4;high:7,9;action:override/append"')
         hackernews_parser.add_argument('--clean-cache', action='store_true', help='清理本地缓存的story数据')
         hackernews_parser.add_argument('--download', help='下载文章链接')
         hackernews_parser.add_argument('--read', help='读取文章内容')
@@ -114,7 +115,7 @@ class GeeknewsCommandHandler:
             override = False
             story_dir = hackernews_dpm.get_story_date_dir(date)
             story_ids = hackernews_manager.api_client.fetch_top_story_ids()
-            story_ids = hackernews_manager.api_client.custom_rank_ids(story_ids, date)
+            story_ids = hackernews_manager.api_client.custom_rank_ids(story_ids, date=date, priority=True)
             for index, id in enumerate(story_ids):
                 story_path = hackernews_dpm.get_story_file_path(id, date)
                 with open(story_path) as f:
@@ -124,6 +125,11 @@ class GeeknewsCommandHandler:
         elif args.preview:
             preview_path = hackernews_manager.get_preview(date, locale)
             print(f"热点列表预览: {preview_path}")
+
+        elif args.set_priority:
+            date = date.get_preview_date()
+            rule_path = hackernews_manager.api_client.make_priority_rule(args.set_priority, date)
+            print(f"更新排序规则: {rule_path}")
 
         elif args.clean_cache:
             hackernews_manager.api_client.clean_local_items(date)
