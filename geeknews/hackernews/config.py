@@ -22,6 +22,7 @@ class HackernewsConfig:
 
     update_freq_days: int
     update_exec_time: str
+    preview_time: str
     exec_time_zone: str
 
     @classmethod
@@ -44,6 +45,7 @@ class HackernewsConfig:
 
         cls.update_freq_days = configparser.get_integer(cls.section, 'update_freq_days')
         cls.update_exec_time = configparser.get(cls.section, 'update_exec_time')
+        cls.preview_time = configparser.get(cls.section, 'preview_time')
         cls.exec_time_zone = configparser.get(cls.section, 'exec_time_zone')
 
         return cls()

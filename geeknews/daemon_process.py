@@ -53,6 +53,17 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager, override_content=Tr
     LOG.info(f"[定时任务执行完毕]")
 
 
+def hacker_news_preview_job(geeknews_manager: GeeknewsManager):
+    locale = 'zh_cn'
+    date = GeeknewsDate.now()
+
+    preview_path = geeknews_manager.hackernews_manager.get_preview(date, locale)
+    if os.path.exists(preview_path):
+        LOG.info(f"[定时获取预览列表]: {preview_path}")
+    else:
+        LOG.error("无法获取预览列表")
+
+
 def start_process():
     # 设置信号处理器
     signal.signal(signal.SIGTERM, graceful_shutdown)
@@ -66,6 +77,7 @@ def start_process():
 
     hn_freq_days = geeknews_manager.hackernews_config.update_freq_days
     hn_exec_time = geeknews_manager.hackernews_config.update_exec_time
+    hn_preview_time = geeknews_manager.hackernews_config.preview_time
     hn_exec_tz = geeknews_manager.hackernews_config.exec_time_zone
 
     override_content = True
@@ -76,6 +88,11 @@ def start_process():
         geeknews_manager,
         override_content,
         debug_send_email,
+    )
+
+    schedule.every(hn_freq_days).days.at(hn_preview_time, hn_exec_tz).do(
+        hacker_news_preview_job,
+        geeknews_manager,
     )
 
     try:
