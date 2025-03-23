@@ -318,7 +318,7 @@ class HackernewsArticleEditor:
         # https://tariyekorogha.medium.com/solution-to-403-client-error-forbidden-for-url-with-python-3-180effbdb21
         try:
             request = Request(url, headers=headers)
-            data = urlopen(request).read()
+            data = urlopen(request, timeout=30).read()
             return data.decode("utf-8")
         except Exception as e:
             LOG.error(str(e))
