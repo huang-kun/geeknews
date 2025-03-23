@@ -502,7 +502,7 @@ class HackernewsClient:
     
     def make_priority_rule(self, rule_text, date):
         if ';' not in rule_text or ':' not in rule_text:
-            return
+            return ""
         
         rules = rule_text.split(';')
         action_rule = "override"
@@ -516,7 +516,7 @@ class HackernewsClient:
         trans_preview_path = os.path.join(summary_dir, 'preview.md')
         if not os.path.exists(trans_preview_path):
             LOG.error("未找到预览列表")
-            return
+            return ""
         
         with open(trans_preview_path) as f:
             preview_text = f.read()
