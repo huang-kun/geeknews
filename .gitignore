@@ -177,3 +177,4 @@ cython_debug/
 test_results.txt
 todo.md
 .backup/
+nohup.out
