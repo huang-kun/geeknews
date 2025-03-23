@@ -82,7 +82,7 @@ class HackernewsSummaryWriter:
         with open(summary_path, 'w') as f:
             f.write(final_content)
 
-    def generate_story_list_summary(self, story_list_path, locale='zh_cn', date=GeeknewsDate.now(), override=False, model=None):
+    def generate_story_list_summary(self, story_list_path, locale='zh_cn', date=GeeknewsDate.now(), override=False, preview=False, model=None):
         if not os.path.exists(story_list_path):
             return
         
@@ -130,7 +130,13 @@ class HackernewsSummaryWriter:
                 translated_title = translated_titles[index]
                 story['title'] = translated_title[2:] if translated_title.startswith(bullet_mark) else translated_title
 
-        summary_contents = list(map(lambda s: f"{bullet_mark}{s['title']} [>>]({s.get('url', '')})", short_stories))
+        summary_contents = []
+        if preview:
+            for i, s in enumerate(short_stories):
+                summary_contents.append(f"{i+1}. [{s["id"]}] {s["title"]}")
+        else:
+            summary_contents = list(map(lambda s: f"{bullet_mark}{s['title']} [>>]({s.get('url', '')})", short_stories))
+
         with open(summary_list_path, 'w') as f:
             f.write('\n'.join(summary_contents))
 

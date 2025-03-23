@@ -68,6 +68,7 @@ class HackernewsManager:
             locale=locale,
             date=date,
             override=True,
+            preview=True,
             model='gpt-4o-mini',
         )
         
