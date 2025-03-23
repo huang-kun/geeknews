@@ -133,7 +133,7 @@ class HackernewsSummaryWriter:
         summary_contents = []
         if preview:
             for i, s in enumerate(short_stories):
-                summary_contents.append(f"{i+1}. [{s["id"]}] {s["title"]}")
+                summary_contents.append(f"{i+1}. [{s['id']}] {s['title']}")
         else:
             summary_contents = list(map(lambda s: f"{bullet_mark}{s['title']} [>>]({s.get('url', '')})", short_stories))
 
