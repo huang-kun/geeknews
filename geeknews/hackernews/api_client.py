@@ -406,11 +406,7 @@ class HackernewsClient:
                 item_path = os.path.join(story_dir, filename)
                 os.remove(item_path)
     
-    def get_previews(self, date=GeeknewsDate.now(), auto_next_day=True):
-        # if date is 1 hour remaining to next day, then preview next date
-        if auto_next_day and date.seconds_until_next_day < 3600:
-            date = date.get_next_date()
-        
+    def get_preview(self, date=GeeknewsDate.now()):
         # fetch stories and rank them
         story_ids = self.fetch_top_story_ids()
         story_ids = self.custom_rank_ids(story_ids, date)

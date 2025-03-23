@@ -49,6 +49,13 @@ class GeeknewsDate:
             day=dt_next_day.day,
         )
     
+    def get_preview_date(self):
+        # if date is 1 hour remaining to next day, then preview next date
+        if self.seconds_until_next_day < 3600:
+            return self.get_next_date()
+        else:
+            return self
+    
     @classmethod
     def test_date(cls):
         return cls(2025, 1, 9)

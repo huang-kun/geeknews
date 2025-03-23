@@ -18,7 +18,8 @@ from geeknews.hackernews.report_writer import HackernewsReportWriter
 
 class HackernewsManager:
 
-    def __init__(self, llm: LLM, config: HackernewsConfig, dpm: HackernewsDataPathManager):        
+    def __init__(self, llm: LLM, config: HackernewsConfig, dpm: HackernewsDataPathManager):
+        self.llm = llm
         self.config = config
         self.api_client = HackernewsClient(config, dpm)
         self.article_editor = HackernewsArticleEditor(llm, config, dpm)
@@ -58,6 +59,24 @@ class HackernewsManager:
         
         return modified_title, modified_summary
 
+    def get_preview(self, date=GeeknewsDate.now(), locale='zh_cn'):
+        date = date.get_preview_date()
+        preview_path = self.api_client.get_preview(date)
+        
+        self.summary_writer.generate_story_list_summary(
+            story_list_path=preview_path,
+            locale=locale,
+            date=date,
+            override=True,
+            model='gpt-4o-mini',
+        )
+        
+        summary_dir = self.datapath_manager.get_summary_full_dir(locale, date)
+        preview_basename = os.path.basename(preview_path)
+        preview_filename, _ = os.path.splitext(preview_basename)
+        trans_preview_path = os.path.join(summary_dir, f'{preview_filename}.md')
+        
+        return trans_preview_path
 
 def test_hackernews_manager():
     llm = LLM()

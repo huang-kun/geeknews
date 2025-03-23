@@ -82,7 +82,7 @@ class HackernewsSummaryWriter:
         with open(summary_path, 'w') as f:
             f.write(final_content)
 
-    def generate_story_list_summary(self, story_list_path, locale='zh_cn', date=GeeknewsDate.now(), override=False):
+    def generate_story_list_summary(self, story_list_path, locale='zh_cn', date=GeeknewsDate.now(), override=False, model=None):
         if not os.path.exists(story_list_path):
             return
         
@@ -113,7 +113,7 @@ class HackernewsSummaryWriter:
                 story_titles.append(bullet_mark + title)
 
             LOG.debug('开始翻译故事列表')
-            translated_content = self.llm.get_assistant_message(system_prompt, '\n'.join(story_titles))
+            translated_content = self.llm.get_assistant_message(system_prompt, '\n'.join(story_titles), model)
             if not translated_content:
                 return
             
