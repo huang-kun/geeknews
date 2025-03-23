@@ -60,7 +60,6 @@ class HackernewsManager:
         return modified_title, modified_summary
 
     def get_preview(self, date=GeeknewsDate.now(), locale='zh_cn'):
-        date = date.get_preview_date()
         preview_path = self.api_client.get_preview(date)
         
         self.summary_writer.generate_story_list_summary(

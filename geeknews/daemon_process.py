@@ -55,7 +55,7 @@ def hacker_news_daily_job(geeknews_manager: GeeknewsManager, override_content=Tr
 
 def hacker_news_preview_job(geeknews_manager: GeeknewsManager):
     locale = 'zh_cn'
-    date = GeeknewsDate.now()
+    date = GeeknewsDate.now().get_preview_date()
 
     preview_path = geeknews_manager.hackernews_manager.get_preview(date, locale)
     if os.path.exists(preview_path):

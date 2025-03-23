@@ -123,6 +123,7 @@ class GeeknewsCommandHandler:
                     self.debug_log_story(story, index)
 
         elif args.preview:
+            date = date.get_preview_date()
             preview_path = hackernews_manager.get_preview(date, locale)
             print(f"热点列表预览: {preview_path}")
 
