@@ -218,9 +218,9 @@ class HackernewsArticleEditor:
         final_text = reduce_text_by_words(text, word_limit=self.config.max_word_count)
         
         if len(final_text) < len(text):
-            LOG.info(f"{story.id} 文章字数有裁剪: 从{count_words(text)}减到{count_words(final_text)}")
+            LOG.info(f"{story.id} 文章词汇量有裁剪: 从{count_words(text)}减到{count_words(final_text)}")
         else:
-            LOG.info(f"{story.id} 文章字数: {count_words(final_text)}")
+            LOG.info(f"{story.id} 文章词汇量: {count_words(final_text)}")
         
         lines = []
         lines.append(title)
