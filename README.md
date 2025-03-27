@@ -7,6 +7,13 @@
 - 提示词优化，参考自[ccbikai](https://github.com/ccbikai/hacker-news)
 - 文章摘要支持gemini生成
 
+#### 0.3更新：
+- 支持脚本预览文章列表和粗糙地自定义顺序
+- 支持可选配展示HN评论
+- 增加目录摘要
+- 优化提示词
+
 如有兴趣可以扫码关注公众号。
 
 ![极客浣熊](wpp-logo.png)
+
