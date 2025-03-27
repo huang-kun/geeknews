@@ -70,9 +70,9 @@ class HackernewsReportWriter:
         report_path = self.datapath_manager.get_report_file_path(locale=locale, date=date, ext=md_suffix_name+'.md')
         if not override and os.path.exists(report_path):
             return
-
-        report_title = self.get_title(locale)
-        report_contents = ['# ' + report_title, '']
+        
+        headlines = ['#### 极客摘要']
+        report_contents = []
 
         story_path = self.datapath_manager.get_stories_file_path(category, date)
         if not os.path.exists(story_path):
@@ -93,10 +93,20 @@ class HackernewsReportWriter:
                 continue
             with open(sum_path) as f:
                 sum_content = f.read().strip()
+                first_line_end = sum_content.find('\n')
+                if first_line_end > 0:
+                    headline = sum_content[:first_line_end]
+                    if headline.startswith('# '):
+                        headline = '- ' + headline[2:]
+                    headlines.append(headline)
                 if extract_links:
                     sum_content = self.re_link.sub(self.get_link_number, sum_content)
                 report_contents.append('###' + sum_content)
                 report_contents.append('')
+
+        if len(headlines) > 1:
+            headlines.append('')
+            report_contents = headlines + report_contents
 
         sum_dir = self.datapath_manager.get_summary_full_dir(locale, date)
         short_story_path = os.path.join(sum_dir, 'short_stories.md')
