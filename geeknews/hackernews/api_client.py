@@ -163,7 +163,7 @@ class HackernewsClient:
 
     def fetch_top_stories(self, date=GeeknewsDate.now()):
         story_limit = self.config.daily_story_max_count
-        comment_limit = self.config.each_story_max_comment_count
+        comment_limit = self.config.each_story_max_comment_count if self.config.summary_with_comments else 0
         article_limit = self.config.daily_article_max_count
 
         LOG.debug(f'开始请求top stories')
@@ -182,7 +182,7 @@ class HackernewsClient:
                 id=id,
                 item_type='story',
                 parent_id=None,
-                recursive=mark_article,
+                recursive=mark_article if self.config.summary_with_comments else False,
                 remain_comment_count=comment_limit if mark_article else 0,
                 current_num=current_num,
                 mark_article=mark_article,

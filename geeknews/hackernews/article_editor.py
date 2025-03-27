@@ -113,7 +113,7 @@ class HackernewsArticleEditor:
         results = []
         for story in stories:
             story_text = self.parse_text(story.get('text', ''))
-            story_comments = list(map(self.parse_comment, story.get('comments', [])))
+            story_comments = list(map(self.parse_comment, story.get('comments', []))) if self.config.summary_with_comments else []
             story_id = story.get('id', 0)
             simple_story = HackernewsSimpleStory(
                 id=story_id,
@@ -214,7 +214,7 @@ class HackernewsArticleEditor:
                     return ''
         
         title = self.generate_article_title(story.title)
-        comment = self.generate_article_comment(story.comments)
+        comment = self.generate_article_comment(story.comments) if self.config.summary_with_comments else ''
         final_text = reduce_text_by_words(text, word_limit=self.config.max_word_count)
         
         if len(final_text) < len(text):

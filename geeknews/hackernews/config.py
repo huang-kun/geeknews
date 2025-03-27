@@ -15,6 +15,7 @@ class HackernewsConfig:
     story_fetch_concurrent: bool
 
     summary_model: str
+    summary_with_comments: bool
 
     max_word_count: int
     validate_word_count: int
@@ -38,6 +39,7 @@ class HackernewsConfig:
         cls.story_fetch_concurrent = configparser.get_bool(cls.section, 'story_fetch_concurrent')
 
         cls.summary_model = configparser.get(cls.section, 'summary_model')
+        cls.summary_with_comments = configparser.get_bool(cls.section, 'summary_with_comments')
 
         cls.max_word_count = configparser.get_integer(cls.section, 'max_word_count')
         cls.validate_word_count = configparser.get_integer(cls.section, 'validate_word_count')

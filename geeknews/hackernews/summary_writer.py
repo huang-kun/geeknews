@@ -67,8 +67,10 @@ class HackernewsSummaryWriter:
         language = self.get_translation_language(locale)
         if language == 'English':
             system_prompt = self.prompt_map['summary_article_en']
+        elif self.config.summary_with_comments:
+            system_prompt = self.prompt_map['summary_article_with_comments']
         else:
-            system_prompt = self.re_trans_var.sub(language, self.prompt_map['summary_article'])
+            system_prompt = self.prompt_map['summary_article']
 
         LOG.debug(f'开始总结文章: {article_id}')
         summary_content = self.llm.generate_text(system_prompt, article_content, self.config.summary_model)
@@ -179,7 +181,7 @@ class HackernewsSummaryWriter:
         
         # search comment
         comment_match = self.re_comment_tag.search(content)
-        if comment_match:
+        if self.config.summary_with_comments and comment_match:
             # add article link to the end of article content
             comment_start = comment_match.start()
             article_last_char_index = self.find_text_ended_before_index(content, comment_start, False)
