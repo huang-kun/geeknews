@@ -32,7 +32,7 @@ class WppNotifier:
             date=date, 
             limit=self.config.digest_word_count
         )
-        final_title = f'HN热点: {story_title}' if story_title else 'HN热点汇总'
+        final_title = story_title if story_title else 'HN热点汇总'
         
         with open(report_path) as f:
             report_content = f.read()

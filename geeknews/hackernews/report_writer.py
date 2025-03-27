@@ -138,7 +138,7 @@ class HackernewsReportWriter:
 
         # also make a html report
         html_title = LOCALIZED_TITLE.get(locale, 'Geeknews')
-        html_footer = '文摘由AI生成，数据源自Hacker News https://news.ycombinator.com'
+        html_footer = '简讯摘自Hacker News https://news.ycombinator.com'
 
         html_content = self.markdown_renderer.generate_html_from_md_path(
             markdown_path=report_path,
@@ -170,13 +170,13 @@ class HackernewsReportWriter:
 
     def get_title(self, locale):
         if locale == 'zh_cn':
-            return "24小时热点回顾"
+            return ""
         else:
             return "HN: Daily Stories"
         
     def get_other_topics_title(self, locale):
         if locale == 'zh_cn':
-            return "其他热点摘要"
+            return "其他消息"
         else:
             return "Other topics"
         
