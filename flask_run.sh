@@ -5,4 +5,4 @@
 # ps aux | grep geekapp
 
 # run gunicorn
-nohup gunicorn --config gunicorn.py geekapp:app >/dev/null 2>&1 &
+nohup gunicorn -w 1 --bind 127.0.0.1:5000 --reload geekapp:app --timeout 120 --access-logfile - --error-logfile - >/dev/null 2>&1 &
