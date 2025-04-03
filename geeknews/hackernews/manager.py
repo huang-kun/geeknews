@@ -53,9 +53,13 @@ class HackernewsManager:
         if locale == 'zh_cn':
             end_char = '。'
             if not summary.endswith(end_char):
-                end_index = summary.rindex(end_char)
-                if end_index > 0:
-                    modified_summary = summary[:end_index+1]
+                try:
+                    end_index = summary.rindex(end_char)
+                    if end_index > 0:
+                        modified_summary = summary[:end_index+1]
+                except ValueError as e:
+                    LOG.error(f'{e}')
+                    modified_summary = summary
         
         return modified_title, modified_summary
 
