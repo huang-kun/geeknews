@@ -466,6 +466,7 @@ class HackernewsClient:
                     "id": story["id"],
                     "title": story["title"],
                     "score": story["score"],
+                    "url": story["url"],
                 }
                 stories.append(simple_story)
         

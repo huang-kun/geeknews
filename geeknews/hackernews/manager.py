@@ -63,7 +63,7 @@ class HackernewsManager:
         
         return modified_title, modified_summary
 
-    def get_preview(self, date=GeeknewsDate.now(), locale='zh_cn'):
+    def get_preview_markdown_path(self, date=GeeknewsDate.now(), locale='zh_cn'):
         preview_path = self.api_client.get_preview(date)
         
         self.summary_writer.generate_story_list_summary(
@@ -81,6 +81,38 @@ class HackernewsManager:
         trans_preview_path = os.path.join(summary_dir, f'{preview_filename}.md')
         
         return trans_preview_path
+    
+    def update_preview_json_list(self, date=GeeknewsDate.now(), locale='zh_cn'):
+        '''update preview.json with translated title'''
+        preview_json_path = self.api_client.get_preview(date)
+        preview_md_path = self.get_preview_markdown_path(date, locale)
+        
+        with open(preview_json_path) as f:
+            preview_objs = json.load(f)
+
+        with open(preview_md_path) as f:
+            preview_md = f.read()
+
+        preview_news = preview_md.split("\n")
+        regex_id = re.compile(r'\[\d+\]')
+        translation = {}
+
+        for item in preview_news:
+            match_id = regex_id.search(item)
+            if not match_id:
+                continue
+            id = match_id.group()[1:-1]
+            text = item[match_id.end():].lstrip()
+            translation[id] = text
+        
+        for item in preview_objs:
+            id = item["id"]
+            item["title"] = translation[str(id)]
+        
+        with open(preview_json_path, 'w') as f:
+            json.dump(preview_objs, f, ensure_ascii=False)
+
+        return preview_json_path
 
 def test_hackernews_manager():
     llm = LLM()

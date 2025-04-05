@@ -124,7 +124,7 @@ class GeeknewsCommandHandler:
 
         elif args.preview:
             date = date.get_preview_date()
-            preview_path = hackernews_manager.get_preview(date, locale)
+            preview_path = hackernews_manager.get_preview_markdown_path(date, locale)
             print(f"热点列表预览: {preview_path}")
 
         elif args.set_priority:

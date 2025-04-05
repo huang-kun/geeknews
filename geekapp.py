@@ -17,7 +17,7 @@ def hello_world():
 @app.route("/api/update_preview")
 def update_preview():
     format, locale, date = get_preview_params()
-    preview_path = geeknews_manager.hackernews_manager.get_preview(date, locale)
+    preview_path = geeknews_manager.hackernews_manager.get_preview_markdown_path(date, locale)
     return load_preview_data(preview_path, format)
 
 @app.route("/api/check_preview")
