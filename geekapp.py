@@ -17,15 +17,14 @@ def hello_world():
 @app.route("/api/update_preview")
 def update_preview():
     format, locale, date = get_preview_params()
-    preview_path = geeknews_manager.hackernews_manager.get_preview_markdown_path(date, locale)
-    return load_preview_data(preview_path, format)
+    preview_path = geeknews_manager.hackernews_manager.generate_preview_markdown(date, locale)
+    return load_preview_text(preview_path, format)
 
 @app.route("/api/check_preview")
 def check_preview():
     format, locale, date = get_preview_params()
-    summary_dir = geeknews_manager.hackernews_manager.datapath_manager.get_summary_full_dir(locale, date)
-    preview_path = os.path.join(summary_dir, 'preview.md')
-    return load_preview_data(preview_path, format)
+    preview_path = geeknews_manager.hackernews_manager.get_preview_markdown_path(date, locale)
+    return load_preview_text(preview_path, format)
 
 @app.route("/api/set_stories_priority", methods=['POST'])
 def set_stories_priority():
@@ -45,7 +44,7 @@ def get_preview_params():
     date = GeeknewsDate.now().get_preview_date()
     return format, locale, date
 
-def load_preview_data(preview_path, format):
+def load_preview_text(preview_path, format):
     if os.path.exists(preview_path):
         with open(preview_path) as f:
             preview_content = f.read()

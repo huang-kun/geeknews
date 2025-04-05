@@ -42,8 +42,6 @@ class GeeknewsCommandHandler:
         hackernews_parser = subparsers.add_parser('hackernews', help='Hacker News top stories')
         hackernews_parser.add_argument('--run', action='store_true', help='是否获取每日热点并生成总结报告')
         hackernews_parser.add_argument('--fetch', action='store_true', help='是否获取每日热点')
-        hackernews_parser.add_argument('--preview', action='store_true', help='热点列表预览')
-        hackernews_parser.add_argument('--set-priority', help='设置预览列表排序优先级：e.g. "low:1,3,4;high:7,9;action:override/append"')
         hackernews_parser.add_argument('--clean-cache', action='store_true', help='清理本地缓存的story数据')
         hackernews_parser.add_argument('--download', help='下载文章链接')
         hackernews_parser.add_argument('--read', help='读取文章内容')
@@ -73,6 +71,14 @@ class GeeknewsCommandHandler:
         wpp_parser.add_argument('--post', action='store_true', help='发布公众号文章草稿')
         wpp_parser.add_argument('--publish', action='store_true', help='发布公众号文章')
         wpp_parser.set_defaults(func=self.handle_wechat_public_platform)
+
+        preview_parser = subparsers.add_parser('preview', help='热点列表预览')
+        preview_parser.add_argument('--gen-md', action='store_true', help='生成markdown预览')
+        preview_parser.add_argument('--gen-json', action='store_true', help='生成json预览')
+        preview_parser.add_argument('--get-md', action='store_true', help='获取markdown预览')
+        preview_parser.add_argument('--get-json', action='store_true', help='获取json预览')
+        preview_parser.add_argument('--set-priority', help='设置预览列表排序优先级：e.g. "low:1,3,4;high:7,9;action:override/append"')
+        preview_parser.set_defaults(func=self.handle_preview)
 
         return parser
     
@@ -121,16 +127,6 @@ class GeeknewsCommandHandler:
                 with open(story_path) as f:
                     story = json.load(f)
                     self.debug_log_story(story, index)
-
-        elif args.preview:
-            date = date.get_preview_date()
-            preview_path = hackernews_manager.get_preview_markdown_path(date, locale)
-            print(f"热点列表预览: {preview_path}")
-
-        elif args.set_priority:
-            date = date.get_preview_date()
-            rule_path = hackernews_manager.api_client.make_priority_rule(args.set_priority, date)
-            print(f"更新排序规则: {rule_path}")
 
         elif args.clean_cache:
             hackernews_manager.api_client.clean_local_items(date)
@@ -359,6 +355,31 @@ class GeeknewsCommandHandler:
             wpp_notifier.publish_report()
         else:
             print('Not supported yet.')
+
+
+    def handle_preview(self, args):
+        hackernews_manager = self.geeknews_manager.hackernews_manager
+
+        locale = 'zh_cn'
+        date = GeeknewsDate.now().get_preview_date()
+
+        if args.gen_md:
+            preview_path = hackernews_manager.generate_preview_markdown(date, locale)
+            print(f"生成md预览: {preview_path}")
+        elif args.gen_json:
+            preview_path = hackernews_manager.generate_preview_json(date, locale)
+            print(f"生成json预览: {preview_path}")
+        elif args.get_md:
+            preview_path = hackernews_manager.get_preview_markdown_path(date, locale)
+            print(f"获取md预览: {preview_path}")
+        elif args.get_json:
+            preview_path = hackernews_manager.get_preview_json_path(date)
+            print(f"获取json预览: {preview_path}")
+        elif args.set_priority:
+            rule_path = hackernews_manager.api_client.make_priority_rule(args.set_priority, date)
+            print(f"更新排序规则: {rule_path}")
+        else:
+            print("未知操作")
 
 
 def start_command_tool():

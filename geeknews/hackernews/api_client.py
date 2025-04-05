@@ -449,7 +449,7 @@ class HackernewsClient:
                 item_path = os.path.join(story_dir, filename)
                 os.remove(item_path)
     
-    def get_preview(self, date=GeeknewsDate.now(), priority=True):
+    def generate_preview(self, date=GeeknewsDate.now(), priority=True):
         # fetch stories and rank them
         story_ids = self.fetch_top_story_ids()
         story_ids = self.custom_rank_ids(story_ids, date, priority)
@@ -466,7 +466,7 @@ class HackernewsClient:
                     "id": story["id"],
                     "title": story["title"],
                     "score": story["score"],
-                    "url": story["url"],
+                    "url": story.get("url", self.get_default_story_url(story["id"])),
                 }
                 stories.append(simple_story)
         
@@ -476,6 +476,11 @@ class HackernewsClient:
         with open(preview_path, 'w') as f:
             json.dump(stories, f, ensure_ascii=False)
         
+        return preview_path
+    
+    def get_preview_path(self, date=GeeknewsDate.now()):
+        story_dir = self.datapath_manager.get_story_date_dir(date)
+        preview_path = os.path.join(story_dir, 'preview.json')
         return preview_path
     
     def apply_sort_rule(self, stories, date=GeeknewsDate.now()):

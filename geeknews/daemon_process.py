@@ -57,8 +57,7 @@ def hacker_news_preview_job(geeknews_manager: GeeknewsManager):
     locale = 'zh_cn'
     date = GeeknewsDate.now().get_preview_date()
 
-    preview_md_path = geeknews_manager.hackernews_manager.get_preview_markdown_path(date, locale)
-    preview_json_path = geeknews_manager.hackernews_manager.update_preview_json_list(date, locale)
+    preview_json_path = geeknews_manager.hackernews_manager.generate_preview_json(date, locale)
     if os.path.exists(preview_json_path):
         LOG.info(f"[定时获取预览列表]: {preview_json_path}")
     else:

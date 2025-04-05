@@ -62,9 +62,13 @@ class HackernewsManager:
                     modified_summary = summary
         
         return modified_title, modified_summary
+    
+    def generate_preview_json(self, date=GeeknewsDate.now(), locale='zh_cn'):
+        _ = self.generate_preview_markdown(date, locale)
+        return self.update_preview_json_with_translation(date, locale)
 
-    def get_preview_markdown_path(self, date=GeeknewsDate.now(), locale='zh_cn'):
-        preview_path = self.api_client.get_preview(date)
+    def generate_preview_markdown(self, date=GeeknewsDate.now(), locale='zh_cn'):
+        preview_path = self.api_client.generate_preview(date)
         
         self.summary_writer.generate_story_list_summary(
             story_list_path=preview_path,
@@ -75,16 +79,22 @@ class HackernewsManager:
             model='gpt-4o-mini',
         )
         
-        summary_dir = self.datapath_manager.get_summary_full_dir(locale, date)
-        preview_basename = os.path.basename(preview_path)
-        preview_filename, _ = os.path.splitext(preview_basename)
-        trans_preview_path = os.path.join(summary_dir, f'{preview_filename}.md')
-        
-        return trans_preview_path
+        return self.get_preview_markdown_path(date, locale)
     
-    def update_preview_json_list(self, date=GeeknewsDate.now(), locale='zh_cn'):
+    def get_preview_markdown_path(self, date=GeeknewsDate.now(), locale='zh_cn'):
+        preview_json_path = self.get_preview_json_path(date)
+        summary_dir = self.datapath_manager.get_summary_full_dir(locale, date)
+        preview_basename = os.path.basename(preview_json_path)
+        preview_filename, _ = os.path.splitext(preview_basename)
+        preview_md_path = os.path.join(summary_dir, f'{preview_filename}.md')
+        return preview_md_path
+    
+    def get_preview_json_path(self, date=GeeknewsDate.now()):
+        return self.api_client.get_preview_path(date)
+    
+    def update_preview_json_with_translation(self, date=GeeknewsDate.now(), locale='zh_cn'):
         '''update preview.json with translated title'''
-        preview_json_path = self.api_client.get_preview(date)
+        preview_json_path = self.get_preview_json_path(date)
         preview_md_path = self.get_preview_markdown_path(date, locale)
         
         with open(preview_json_path) as f:
