@@ -78,6 +78,7 @@ class GeeknewsCommandHandler:
         preview_parser.add_argument('--get-md', action='store_true', help='获取markdown预览')
         preview_parser.add_argument('--get-json', action='store_true', help='获取json预览')
         preview_parser.add_argument('--set-priority', help='设置预览列表排序优先级：e.g. "low:1,3,4;high:7,9;action:override/append"')
+        preview_parser.add_argument('--set-preorder', help='设置预览列表排序')
         preview_parser.set_defaults(func=self.handle_preview)
 
         return parser
@@ -377,6 +378,9 @@ class GeeknewsCommandHandler:
             print(f"获取json预览: {preview_path}")
         elif args.set_priority:
             rule_path = hackernews_manager.api_client.make_priority_rule(args.set_priority, date)
+            print(f"更新排序规则: {rule_path}")
+        elif args.set_preorder:
+            rule_path = hackernews_manager.api_client.make_preorder_rule(args.set_preorder, date)
             print(f"更新排序规则: {rule_path}")
         else:
             print("未知操作")

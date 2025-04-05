@@ -319,9 +319,21 @@ class HackernewsClient:
         else:
             stories = self.prefetch_stories(story_ids, date)
         
-        if priority:
-            stories = self.apply_sort_rule(stories, date)
+        # get sort_rule.json
+        story_dir = self.datapath_manager.get_story_date_dir(date)
+        rule_path = os.path.join(story_dir, 'sort_rule.json')
+        rule_content = {}
+        if priority and os.path.exists(rule_path):
+            with open(rule_path) as f:
+                rule_content = json.load(f)
+
+        if priority and rule_content:
+            stories = self.apply_sort_priority_rule(stories, rule_content)
         stories = self.custom_rank_stories(stories, priority=priority)
+        if priority and rule_content:
+            stories = self.apply_sort_preorder_rule(stories, rule_content)
+        stories = self.sink_unsupport_stories(stories)
+
         return list(map(lambda x: x.get('id', 0), stories))
     
     def custom_rank_stories(self, stories, priority=True):
@@ -330,7 +342,6 @@ class HackernewsClient:
         if priority:
             stories = self.up_high_priority_stories(stories)
             stories = self.sink_low_priority_stories(stories)
-        stories = self.sink_unsupport_stories(stories)
         return stories
     
     def should_keep_story(self, story: dict):
@@ -483,18 +494,39 @@ class HackernewsClient:
         preview_path = os.path.join(story_dir, 'preview.json')
         return preview_path
     
-    def apply_sort_rule(self, stories, date=GeeknewsDate.now()):
+    def apply_sort_preorder_rule(self, stories, rule_content):
+        if 'preorder' in rule_content:
+            preorder_ids = rule_content['preorder']
+            if not preorder_ids:
+                return stories
+            
+            story_mappings = {}
+            for story in stories:
+                id = story['id']
+                story_mappings[id] = story
+            
+            preorder_stories = []
+            collected_ids = set()
+            for id in preorder_ids:
+                if id in story_mappings:
+                    story = story_mappings[id]
+                    preorder_stories.append(story)
+                    collected_ids.add(id)
+            
+            for story in stories:
+                id = story['id']
+                if id not in collected_ids:
+                    preorder_stories.append(story)
+            
+            return preorder_stories
+        
+        return stories
+    
+    def apply_sort_priority_rule(self, stories, rule_content):
         '''Read "sort_rule.json" then mark it to story list'''
-        story_dir = self.datapath_manager.get_story_date_dir(date)
-        rule_path = os.path.join(story_dir, 'sort_rule.json')
-        if not os.path.exists(rule_path):
-            return stories
-        
-        with open(rule_path) as f:
-            rule = json.load(f)
-        
-        if 'priority' in rule:
-            priority = rule['priority']
+
+        if 'priority' in rule_content:
+            priority = rule_content['priority']
             high_ids = set(priority.get('high', []))
             low_ids = set(priority.get('low', []))
             
@@ -579,7 +611,25 @@ class HackernewsClient:
             json.dump(rule_content, f)
 
         return rule_path
+    
+    def make_preorder_rule(self, ids, date):
+        story_dir = self.datapath_manager.get_story_date_dir(date)
+        rule_path = os.path.join(story_dir, 'sort_rule.json')
 
+        rule_content = {}
+        if os.path.exists(rule_path):
+            with open(rule_path) as f:
+                rule_content = json.load(f)
+
+        if isinstance(ids, list):
+            rule_content['preorder'] = list(map(lambda x: int(x), ids))
+        elif isinstance(ids, str):
+            rule_content['preorder'] = list(map(lambda x: int(x), ids.split(',')))
+        
+        with open(rule_path, 'w') as f:
+            json.dump(rule_content, f)
+
+        return rule_path
 
 def test_hackernews_client():
     config = HackernewsConfig.get_from_parser()
