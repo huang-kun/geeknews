@@ -2,6 +2,8 @@ import os
 import json
 import html
 import re
+import curl_cffi
+
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
 from markdownify import MarkdownConverter
@@ -302,14 +304,14 @@ class HackernewsArticleEditor:
         
         LOG.debug(f'正在读取链接: {url}')
         try:
-            text = self.get_text_from_url(url)
+            text = self.get_text_from_url_by_curl_impersonate(url)
             soup = BeautifulSoup(text, 'html.parser')
             return self.md_converter.convert_soup(soup)
         except Exception as e:
             LOG.error(str(e))
             return ''
     
-    def get_text_from_url(self, url):
+    def get_text_from_url_by_urllib(self, url):
         # https://www.useragentstring.com/pages/Chrome/
         headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5672 Safari/537.36'
@@ -322,6 +324,14 @@ class HackernewsArticleEditor:
             return data.decode("utf-8")
         except Exception as e:
             LOG.error(str(e))
+            return ''
+        
+    def get_text_from_url_by_curl_impersonate(self, url):
+        # https://github.com/lexiforest/curl_cffi
+        response = curl_cffi.get(url, impersonate="chrome")
+        if response.status_code == 200:
+            return response.text
+        else:
             return ''
     
     def support_story(self, story: HackernewsSimpleStory):
