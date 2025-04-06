@@ -154,7 +154,7 @@ class LLM:
     def get_gemini_text(self, system_prompt, user_content, model):
         try:
             response = self.gemini_client.models.generate_content(
-                model=model, 
+                model=model if model else 'gemini-2.0-flash', 
                 contents=user_content, 
                 config=GenerateContentConfig(
                     system_instruction=system_prompt,
@@ -190,7 +190,7 @@ class LLM:
     async def aio_get_gemini_text(self, system_prompt, user_content, model):
         try:
             response = await self.gemini_client.aio.models.generate_content(
-                model=model,
+                model=model if model else 'gemini-2.0-flash',
                 contents=user_content,
                 config=GenerateContentConfig(
                     system_instruction=system_prompt,
