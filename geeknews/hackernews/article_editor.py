@@ -2,7 +2,10 @@ import os
 import json
 import html
 import re
+import asyncio
+import aiofiles
 import curl_cffi
+from curl_cffi import AsyncSession
 
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
@@ -170,9 +173,14 @@ class HackernewsArticleEditor:
         if not os.path.exists(story_list_path):
             LOG.debug(f'{category}路径不存在: {story_list_path}')
             return
+        
         with open(story_list_path) as f:
             stories = json.load(f)
-        self.generate_articles(stories, date)
+        
+        if self.config.story_fetch_concurrent:
+            asyncio.run(self.aio_generate_articles(stories, date))
+        else:
+            self.generate_articles(stories, date)
         
     def generate_articles(self, stories, date=GeeknewsDate.now()):
         simple_stories = self.parse_stories(stories)
@@ -215,6 +223,9 @@ class HackernewsArticleEditor:
                     LOG.error(f"{story.id} 文章内容不相关: {relevance_score}")
                     return ''
         
+        return self.construct_article_components(story, text)
+    
+    def construct_article_components(self, story, text):
         title = self.generate_article_title(story.title)
         comment = self.generate_article_comment(story.comments) if self.config.summary_with_comments else ''
         final_text = reduce_text_by_words(text, word_limit=self.config.max_word_count)
@@ -371,6 +382,107 @@ class HackernewsArticleEditor:
         
         stories = self.parse_stories([story])
         return self.generate_article(stories[0])
+    
+    # =======
+    # asyncio
+    # =======
+        
+    async def aio_generate_articles(self, stories, date=GeeknewsDate.now()):
+        simple_stories = self.parse_stories(stories)
+        LOG.debug(f'开始编辑')
+
+        tasks = []
+        for story in simple_stories:
+            article_path = self.datapath_manager.get_article_file_path(story.id, date)
+            if not story.article or os.path.exists(article_path):
+                continue
+            task = asyncio.create_task(self.aio_generate_article_and_save(story, article_path))
+            tasks.append(task)
+        
+        await asyncio.gather(*tasks)
+        LOG.debug(f'编辑结束: {self.datapath_manager.get_article_date_dir(date)}')
+
+    async def aio_generate_article_and_save(self, story, article_path):
+        article = await self.aio_generate_article(story)
+        if article:
+            async with aiofiles.open(article_path, 'w') as f:
+                await f.write(article)
+        else:
+            LOG.debug(f'拒绝整理{story.id}, 没有内容')
+    
+    async def aio_generate_article(self, story):
+        if not self.support_story(story):
+            return ''
+
+        text = await self.aio_generate_article_text(story)
+        if not text:
+            return ''
+        
+        # check relevance of title and web content, maybe is empty web page.
+        if text and not story.text:
+            word_count = count_words(text)
+            if word_count == 0:
+                return ''
+            if word_count < self.config.validate_word_count and self.llm:
+                relevance_score = await self.aio_check_article_relevance_score(story.title, text)
+                if relevance_score > self.config.validation_score:
+                    LOG.info(f"{story.id} 文章内容相关性评分: {relevance_score}")
+                else:
+                    LOG.error(f"{story.id} 文章内容不相关: {relevance_score}")
+                    return ''
+        
+        return self.construct_article_components(story, text)
+    
+    async def aio_generate_article_text(self, story: HackernewsSimpleStory) -> str:
+        text = await self.aio_get_markdown_text_from_url(story.url)
+        if story.text:
+            return story.text + '\n\n' + text
+        return text
+    
+    async def aio_get_markdown_text_from_url(self, url):
+        if not url:
+            return ''
+        
+        LOG.debug(f'正在读取链接: {url}')
+        try:
+            text = await self.aio_get_text_from_url_by_curl_impersonate(url)
+            soup = BeautifulSoup(text, 'html.parser')
+            return self.md_converter.convert_soup(soup)
+        except Exception as e:
+            LOG.error(str(e))
+            return ''
+        
+    async def aio_get_text_from_url_by_curl_impersonate(self, url):
+        # https://github.com/lexiforest/curl_cffi
+        async with AsyncSession() as session:
+            response = await session.get(url, impersonate="chrome")
+            if response.status_code == 200:
+                return response.text
+            else:
+                return ''
+
+    async def aio_check_article_relevance_score(self, title, content):
+        '''Check title and content relevance and return a score of 0-100.'''
+        formatted_text = f"<title>{title}</title>\n<content>\n{content}\n</content>"
+        result = await self.llm.aio_get_assistant_message(
+            system_prompt=LLM.get_system_prompt('check_article_relevance', subdir='hackernews'),
+            user_content=formatted_text,
+        )
+        if not result:
+            return 0
+        
+        score_match = self.score_re.search(result)
+        if not score_match:
+            return 0
+        
+        score_text = score_match.group()
+        try:
+            score = int(score_text)
+            return score
+        except Exception as e:
+            LOG.error(f"文章内容相关性评分解析失败: {e}")
+            return 0
+
 
 def test_hackernews_article_editor():
     config = HackernewsConfig.get_from_parser()
