@@ -1,4 +1,7 @@
 import os, re, json
+import asyncio
+import aiofiles
+
 from geeknews.llm import LLM
 from geeknews.utils.logger import LOG
 from geeknews.utils.date import GeeknewsDate
@@ -40,11 +43,18 @@ class HackernewsSummaryWriter:
 
         LOG.debug(f'开始总结以下文章, 数量: {len(article_paths)}')
 
-        for article_path in article_paths:
-            self.generate_article_summary(article_path, locale, date, override)
+        if self.config.story_fetch_concurrent:
+            asyncio.run(self.aio_generate_article_summaries(article_paths, locale, date, override))
+        else:
+            self.generate_article_summaries(article_paths, locale, date, override)
+        
         self.generate_story_list_summary(short_story_path, locale, date, override)
 
         LOG.debug(f'总结完成: {self.datapath_manager.get_summary_full_dir(locale, date)}')
+
+    def generate_article_summaries(self, article_paths, locale='zh_cn', date=GeeknewsDate.now(), override=False):
+        for article_path in article_paths:
+            self.generate_article_summary(article_path, locale, date, override)
 
     def generate_article_summary(self, article_path, locale='zh_cn', date=GeeknewsDate.now(), override=False):
         article_filename = os.path.basename(article_path)
@@ -83,6 +93,53 @@ class HackernewsSummaryWriter:
         
         with open(summary_path, 'w') as f:
             f.write(final_content)
+    
+    async def aio_generate_article_summaries(self, article_paths, locale='zh_cn', date=GeeknewsDate.now(), override=False):
+        tasks = []
+        for article_path in article_paths:
+            task = asyncio.create_task(self.aio_generate_article_summary(article_path, locale, date, override))
+            tasks.append(task)
+        await asyncio.gather(*tasks)
+
+    async def aio_generate_article_summary(self, article_path, locale='zh_cn', date=GeeknewsDate.now(), override=False):
+        article_filename = os.path.basename(article_path)
+        article_id, _ = os.path.splitext(article_filename)
+        
+        # Get story (with url, author, score)
+        story = {}
+        story_path = self.datapath_manager.get_story_file_path(article_id, date)
+        if os.path.exists(story_path):
+            async with aiofiles.open(story_path) as f:
+                story_text = await f.read()
+                story = json.loads(story_text)
+        
+        summary_path = self.datapath_manager.get_summary_file_path(article_id, locale, date)
+        if not override and os.path.exists(summary_path):
+            return
+
+        async with aiofiles.open(article_path) as f:
+            article_content = await f.read()
+            article_content = article_content.strip()
+        
+        language = self.get_translation_language(locale)
+        if language == 'English':
+            system_prompt = self.prompt_map['summary_article_en']
+        elif self.config.summary_with_comments:
+            system_prompt = self.prompt_map['summary_article_with_comments']
+        else:
+            system_prompt = self.prompt_map['summary_article']
+
+        LOG.debug(f'开始总结文章: {article_id}')
+        summary_content = await self.llm.aio_generate_text(system_prompt, article_content, self.config.summary_model)
+        final_content = self.modify_summarized_content(
+            article_id=article_id, 
+            article_url=story.get('url', HackernewsClient.get_default_story_url(article_id)), 
+            content=summary_content, 
+            locale=locale
+        )
+        
+        async with aiofiles.open(summary_path, 'w') as f:
+            await f.write(final_content)
 
     def generate_story_list_summary(self, story_list_path, locale='zh_cn', date=GeeknewsDate.now(), override=False, preview=False, model=None):
         if not os.path.exists(story_list_path):

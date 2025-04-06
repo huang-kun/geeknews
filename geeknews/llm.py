@@ -1,8 +1,9 @@
 import os
 import httpx
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 from google import genai
-from google.genai import types
+from google.genai.types import GenerateContentConfig, HttpOptions
+
 from geeknews.utils.logger import LOG
 
 class LLM:
@@ -15,6 +16,7 @@ class LLM:
         self.model = model
         self.openai_client = self.create_openai_client()
         self.gemini_client = self.create_gemini_client()
+        self.aio_openai_client = self.create_aio_openai_client()
 
     @classmethod
     def get_system_prompt_map(cls, subdir='hackernews'):
@@ -54,11 +56,31 @@ class LLM:
         else:
             return OpenAI(api_key=api_key)
     
+    def create_aio_openai_client(self):
+        api_key = self.get_config_value(self.api_key, 'OPENAI_API_KEY')
+        base_url = self.get_config_value(self.base_url, 'OPENAI_BASE_URL')
+
+        if base_url:
+            return AsyncOpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                http_client=httpx.AsyncClient(
+                    base_url=base_url,
+                    follow_redirects=True,
+                )
+            )
+        else:
+            return AsyncOpenAI(api_key=api_key)
+    
     def create_gemini_client(self):
         gemini_api_key = os.getenv('GEMINI_API_KEY', '')
         if not gemini_api_key:
             return None
-        return genai.Client(api_key=gemini_api_key)
+        
+        return genai.Client(
+            api_key=gemini_api_key, 
+            # http_options=HttpOptions(api_version="v1")
+        )
         
     def get_config_value(self, value, default_key):
         if not value and default_key in os.environ:
@@ -134,8 +156,45 @@ class LLM:
             response = self.gemini_client.models.generate_content(
                 model=model, 
                 contents=user_content, 
-                config=types.GenerateContentConfig(
-                    system_instruction=system_prompt
+                config=GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_modalities=["TEXT"],
+                ),
+            )
+            return response.text
+        except Exception as e:
+            LOG.error(f"请求gemini出错: {e}")
+            return ''
+
+    async def aio_generate_text(self, system_prompt, user_content, model):
+        if model.startswith('gemini') and self.gemini_client:
+            return await self.aio_get_gemini_text(system_prompt, user_content, model)
+        else:
+            return await self.aio_get_assistant_message(system_prompt, user_content) 
+
+    async def aio_get_assistant_message(self, system_prompt, user_content, model=None):
+        messages = [
+            {'role': 'system', 'content': system_prompt},
+            {'role': 'user', 'content': user_content}
+        ]
+        try:
+            response = await self.aio_openai_client.chat.completions.create(
+                model=model if model else self.model,
+                messages=messages
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            LOG.error(f"请求openai出错: {e}")
+            return ''
+
+    async def aio_get_gemini_text(self, system_prompt, user_content, model):
+        try:
+            response = await self.gemini_client.aio.models.generate_content(
+                model=model,
+                contents=user_content,
+                config=GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_modalities=["TEXT"],
                 ),
             )
             return response.text
