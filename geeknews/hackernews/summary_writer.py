@@ -172,7 +172,7 @@ class HackernewsSummaryWriter:
                 story_titles.append(bullet_mark + title)
 
             LOG.debug('开始翻译故事列表')
-            translated_content = self.llm.get_gemini_text(system_prompt, '\n'.join(story_titles), model)
+            translated_content = self.llm.get_assistant_message(system_prompt, '\n'.join(story_titles), model)
             if not translated_content:
                 return
             
