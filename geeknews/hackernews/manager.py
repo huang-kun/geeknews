@@ -76,7 +76,6 @@ class HackernewsManager:
             date=date,
             override=True,
             preview=True,
-            model='gpt-4o-mini',
         )
         
         return self.get_preview_markdown_path(date, locale)
