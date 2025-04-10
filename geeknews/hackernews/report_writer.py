@@ -138,7 +138,7 @@ class HackernewsReportWriter:
 
         # also make a html report
         html_title = LOCALIZED_TITLE.get(locale, 'Geeknews')
-        html_footer = '简讯摘自Hacker News https://news.ycombinator.com'
+        html_footer = '以上是由AI解读的Hacker News并生成摘要，如发现事实性错误或表述不当，欢迎在评论区反馈指正。新闻来源自 https://news.ycombinator.com'
 
         html_content = self.markdown_renderer.generate_html_from_md_path(
             markdown_path=report_path,
