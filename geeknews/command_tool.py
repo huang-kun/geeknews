@@ -134,7 +134,10 @@ class GeeknewsCommandHandler:
 
         elif args.download:
             url = args.download
-            text = hackernews_manager.article_editor.read_text_from_url(url)
+            text = hackernews_manager.article_editor.get_text_from_url_by_curl_impersonate(url)
+
+            if url.endswith('/'):
+                url = url[:-1]
 
             name = url.split('/')[-1] 
             download_dir = os.path.expanduser('~/Downloads')
@@ -142,6 +145,8 @@ class GeeknewsCommandHandler:
 
             with open(path, 'w') as f:
                 f.write(text)
+
+            print(f"Download finish: {path}")
 
         elif args.read:
             story_path = args.read
