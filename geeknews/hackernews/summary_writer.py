@@ -272,6 +272,11 @@ class HackernewsSummaryWriter:
                     content = self.insert_str(content, article_link, content_last_char_index+1)
             else:
                 content = content + article_link
+        
+        # modify text for avoiding wechat public platform issue
+        # 501 Server Error: Not Implemented for url: https://api.weixin.qq.com/cgi-bin/draft/add?access_token=xxx
+        if '/etc/hosts' in content:
+            content = content.replace('/etc/hosts', '\/etc\/hosts')
 
         return content
     
