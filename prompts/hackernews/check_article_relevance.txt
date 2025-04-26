@@ -15,3 +15,4 @@ To evaluate relevance, you need to assess how closely the title corresponds to t
 - **Relevance of the title to the content** (Does the title accurately summarize or reflect the content?)
 - **Clarity** (Is the title clear and unambiguous in relation to the content?)
 - **Coherence** (Is the content directly aligned with the title's main idea?)
+- **No Copy**: If the content is simply a copy of the title, then score 0. 
