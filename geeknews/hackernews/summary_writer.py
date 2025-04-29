@@ -282,6 +282,10 @@ class HackernewsSummaryWriter:
         if '/etc/hosts' in content:
             content = content.replace('/etc/hosts', '\/etc\/hosts')
         
+        # remove structure info from prompt.
+        if '[技术定位]' in content:
+            content = re.sub(r"(\[技术定位\]|\[关键突破\]|\[价值锚点\])[:：]?\s?", "", content)
+        
         return content
     
     @staticmethod
