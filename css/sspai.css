@@ -58,6 +58,7 @@ h4 {
     margin: 30px 0 18px;
     padding-left: 10px;
     border-left: 4px solid #ff7e79;
+    color: light-dark(#000000, #aaaaaa);
 }
 
 h5,
@@ -274,6 +275,7 @@ ol#footnotes li:before {
 footer {
     text-align: center;
     padding: 5px;
+    color: light-dark(#444444, #7c7c7c);
 }
 
 @keyframes highfade {
