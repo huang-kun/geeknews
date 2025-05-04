@@ -1,11 +1,21 @@
 import os
 import json
+import subprocess
 
-from flask import Flask
+from flask import Flask, make_response
 from flask import request
 
 from geeknews.manager import GeeknewsManager
 from geeknews.utils.date import GeeknewsDate
+
+from geeknews.notifier.email_notifier import GeeknewsEmailNotifier
+from geeknews.configparser import GeeknewsConfigParser
+from geeknews.config import GeeknewsEmailConfig, GeeknewsWechatPPConfig
+
+from geeknews.notifier.wechatpp.client.client import WppClient
+from geeknews.notifier.wechatpp.client.base import WppRequest, WppBaseClient
+from geeknews.notifier.wechatpp.api.draft import *
+from geeknews.notifier.wpp_notifier import WppNotifier
 
 app = Flask(__name__)
 geeknews_manager = GeeknewsManager()
@@ -65,6 +75,48 @@ def set_stories_priority_v2():
             return rule_content
     return {}
 
+# post json
+@app.route("/api/run_hn_and_post", methods=['POST'])
+def run_hn_and_post():
+    result_text = 'unknown'
+
+    if request.method == "POST":
+        params = request.get_json()
+        date_compo = params.get('date', None)
+        date = GeeknewsDate.now()
+        if date_compo:
+            compo = list(map(lambda x: int(x), filter(lambda y: y.isdigit(), date_compo.split('-'))))
+            if len(compo) == 3:
+                date = GeeknewsDate(compo[0], compo[1], compo[2])
+        
+        try:
+            # run hn daily report
+            geeknews_manager.hackernews_manager.generate_daily_report(date=date, override=True)
+            # post to wechat public platform
+            wpp_notifier = WppNotifier(
+                config=GeeknewsWechatPPConfig.get_from_parser(geeknews_manager.configparser),
+                hackernews_manager=geeknews_manager.hackernews_manager
+            )
+            wpp_notifier.post_draft(date=date)
+        except Exception as e:
+            result_text = str(e)
+        else:
+            # if run success, then check the log.
+            log_path = os.path.expanduser('~/log/geeknews.log')
+            process_result = subprocess.run(['tail', '-50', log_path], capture_output=True, text=True)
+            if process_result.stderr:
+                result_text = process_result.stderr
+            elif process_result.stdout:
+                result_text = process_result.stdout
+            else:
+                result_text = str(process_result)
+    else:
+        result_text = 'Not post request!'
+    
+    response = make_response(result_text, 200)
+    response.mimetype = "text/plain"
+    return response
+
 def get_preview_params():
     format = request.args.get('format', '')
     locale = 'zh_cn'
@@ -88,3 +140,6 @@ def load_preview_json(preview_path):
         with open(preview_path) as f:
             result = json.load(f)
     return result
+
+# debug run:
+# flask --app geekapp run
