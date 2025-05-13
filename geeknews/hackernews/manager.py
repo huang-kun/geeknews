@@ -96,6 +96,10 @@ class HackernewsManager:
         preview_json_path = self.get_preview_json_path(date)
         preview_md_path = self.get_preview_markdown_path(date, locale)
         
+        # if preview translation failed (e.g. LLM token.RemainQuota = -20277), then stop.
+        if not os.path.exists(preview_md_path):
+            return preview_json_path
+        
         with open(preview_json_path) as f:
             preview_objs = json.load(f)
 
