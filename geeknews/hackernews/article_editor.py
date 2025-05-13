@@ -258,7 +258,7 @@ class HackernewsArticleEditor:
     def check_article_relevance_score(self, title, content):
         '''Check title and content relevance and return a score of 0-100.'''
         formatted_text = f"<title>{title}</title>\n<content>\n{content}\n</content>"
-        result = self.llm.get_assistant_message(
+        result = self.llm.get_gemini_text(
             system_prompt=LLM.get_system_prompt('check_article_relevance', subdir='hackernews'),
             user_content=formatted_text,
         )
@@ -464,7 +464,7 @@ class HackernewsArticleEditor:
     async def aio_check_article_relevance_score(self, title, content):
         '''Check title and content relevance and return a score of 0-100.'''
         formatted_text = f"<title>{title}</title>\n<content>\n{content}\n</content>"
-        result = await self.llm.aio_get_assistant_message(
+        result = await self.llm.aio_get_gemini_text(
             system_prompt=LLM.get_system_prompt('check_article_relevance', subdir='hackernews'),
             user_content=formatted_text,
         )
