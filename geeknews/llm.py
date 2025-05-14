@@ -187,7 +187,7 @@ class LLM:
             LOG.error(f"请求openai出错: {e}")
             return ''
 
-    async def aio_get_gemini_text(self, system_prompt, user_content, model):
+    async def aio_get_gemini_text(self, system_prompt, user_content, model=None):
         try:
             response = await self.gemini_client.aio.models.generate_content(
                 model=model if model else 'gemini-2.0-flash',
